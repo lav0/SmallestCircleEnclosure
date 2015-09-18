@@ -2,7 +2,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 from SimpleMath import epsilon
+from SimpleMath import Point2D
 from SimpleMath import solve_simple_linear_system_cramer
+from readwrite_list import read_list_of_points
 from matplotlib.pyplot import eventplot
 
 
@@ -15,42 +17,6 @@ def time_measure_decorator(function):
         return result
 
     return wrapper;
-
-
-class Point2D():
-    def __init__(self, x, y):
-        self.m_x, self.m_y = x, y
-
-    def sum(self, other):
-        return Point2D(self.m_x + other.m_x, self.m_y + other.m_y);
-
-    def sub(self, other):
-        return Point2D(self.m_x - other.m_x, self.m_y - other.m_y);
-
-    def scal(self, other):
-        return self.m_x * other.m_x + self.m_y * other.m_y;
-
-    def multiply(self, coef):
-        return Point2D(self.m_x * coef, self.m_y * coef);
-
-    def inverted(self):
-        return Point2D(-self.m_x, -self.m_y);
-
-    def squared_norm(self):
-        return self.m_x ** 2 + self.m_y ** 2
-
-    def norm(self):
-        return np.sqrt(self.squared_norm());
-
-    def get_x(self):
-        return self.m_x
-
-    def get_y(self):
-        return self.m_y
-
-    def __eq__(self, other):
-        return self.sub(other).norm() < epsilon;
-
 
 class MyCircle():
     def __init__(self, x, y, r=1.0):
@@ -289,6 +255,15 @@ if __name__ == '__main__':
 
     fig.canvas.mpl_connect('button_press_event', button_press_callback)
 
+    list_of_points = read_list_of_points("TestCase0.txt");
+    list_scaled = list();
+    for p in list_of_points:
+        scaled_point = (p.sum(Point2D(10, 10))).multiply(0.05)
+        list_scaled.append(scaled_point)
+        line = plt.Line2D((scaled_point.get_x(), scaled_point.get_x()), (scaled_point.get_y(), scaled_point.get_y()), marker='o', color='y')
+        plt.gcf().gca().add_artist(line)
+
+    list_of_points = list_scaled
     plt.show()
 
 else:

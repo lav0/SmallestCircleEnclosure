@@ -3,29 +3,14 @@ from exp4_draw_clicks import find_smallest_circle_directly
 from exp4_draw_clicks import find_smallest_circle_sqtime
 from exp4_draw_clicks import find_gravity_centre
 from exp4_draw_clicks import Point2D
+from readwrite_list import write_list_of_points
+from readwrite_list import read_list_of_points
 import math
 import random
 __author__ = 'lav'
 
 
 class TestFind_smallest_circle_sqtime(TestCase):
-
-    def write_list_of_points(self, thelist, filename):
-        f = open(filename, "w+")
-        for p in thelist:
-            f.write(str(p.get_x()) + ", " + str(p.get_y()) + "\n");
-        f.close();
-
-    def read_list_of_points(self, filename):
-        f = open(filename, "r");
-        if f.mode is "r":
-            thelist = list();
-            lines = f.readlines();
-            for line in lines:
-                split = [s.strip() for s in line.split(",")];
-                thelist.append(Point2D(float(split[0]), float(split[1])))
-        f.close();
-        return thelist;
 
     def test_tricky(self):
         epsilon = 0.001
@@ -58,10 +43,10 @@ class TestFind_smallest_circle_sqtime(TestCase):
     def test_random(self):
 
         thelist = list();
-        for i in range(10):
+        for i in range(4):
             thelist.append(Point2D(random.uniform(-10.0, 10.0), random.uniform(-10.0, 10.0)));
 
-        self.write_list_of_points(thelist, "RandomPoints.txt");
+        write_list_of_points(thelist, "RandomPoints.txt");
 
         circle1 = find_smallest_circle_directly(thelist);
         circle2 = find_smallest_circle_sqtime(thelist);
@@ -71,7 +56,7 @@ class TestFind_smallest_circle_sqtime(TestCase):
         self.assertEqual(round(circle1.radius, 3), round(circle2.radius, 3));
 
     def test_from_file(self):
-        thelist = self.read_list_of_points("TestCase0.txt");
+        thelist = read_list_of_points("TestCase0.txt");
 
         circle1 = find_smallest_circle_directly(thelist);
         circle2 = find_smallest_circle_sqtime(thelist);
@@ -93,6 +78,6 @@ class TestFind_smallest_circle_sqtime(TestCase):
         self.assertEqual(circle2.centre.get_y(), -0.125);
         self.assertEqual(circle2.radius, 1.0077822185373186);
 
-        self.test_tricky();
-        self.test_from_file();
-        self.test_random();
+        self.test_tricky(); print "Tricky test passed"
+        self.test_from_file(); print "File test passed"
+
