@@ -142,13 +142,21 @@ def find_gravity_centre(list_of_points):
     return Point2D(inv_number_of_elements * sum(p.get_x() for p in list_of_points),
                    inv_number_of_elements * sum(p.get_y() for p in list_of_points));
 
-def is_triangle_obtuse(p1, p2, p3):
+def get_vertex_with_obtuse_angle(p1, p2, p3):
     squared_length1 = p1.sub(p2).squared_norm();
     squared_length2 = p2.sub(p3).squared_norm();
     squared_length3 = p3.sub(p1).squared_norm();
 
-    thelist = sorted([squared_length1, squared_length2, squared_length3]);
-    return thelist[0] + thelist[1] < thelist[2];
+    tuple1 = (squared_length1, p3)
+    tuple2 = (squared_length2, p1)
+    tuple3 = (squared_length3, p2)
+
+    thelist = sorted([tuple1, tuple2, tuple3], key=lambda tup: tup[0]);
+
+    if thelist[0][0] + thelist[1][0] >= thelist[2][0]:
+        return None
+
+    return thelist[2][1];
 
 
 @time_measure_decorator
@@ -167,6 +175,7 @@ def find_smallest_circle_sqtime(list_of_points):
             if anchor_radius < circle.radius:
                 anchor_radius = circle.radius;
                 anchor_point = p;
+                smallest_circle = circle;
 
     # the pair of pivot points found:
     a = farther_point;
@@ -179,35 +188,7 @@ def find_smallest_circle_sqtime(list_of_points):
     if all(pivot_circle.is_point_inside(p) for p in list_of_points):
         smallest_circle = pivot_circle;
     else:
-        final_radius = 0;
-        final_point = a;
-        in_progress = True;
-        while in_progress:
-            pivot_centre = a.sum(b).multiply(0.5);
-            for p in list_of_points:
-                if p is not a and p is not b:
-                    circle = reduced_circle(smallest_circle, a, pivot_centre, p);
-                    if final_radius < circle.radius:
-                        final_radius = circle.radius;
-                        final_point = p;
-
-            in_progress = is_triangle_obtuse(a, b, final_point);
-            if in_progress:
-                c = final_point;
-                ab = b.sub(a);
-                ac = c.sub(a);
-                ba = a.sub(b);
-                bc = c.sub(b);
-                if ab.scal(ac) < 0:
-                    list_of_points.remove(a);
-                    a = final_point;
-                elif ba.scal(bc) < 0:
-                    list_of_points.remove(b);
-                    b = final_point;
-                else:
-                    list_of_points.remove(final_point);
-            else:
-                smallest_circle = circle;
+        pass
 
 
 
