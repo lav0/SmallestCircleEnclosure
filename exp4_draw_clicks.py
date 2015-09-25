@@ -180,6 +180,7 @@ def find_smallest_circle_sqtime(list_of_points):
     # the pair of pivot points found:
     a = farther_point;
     b = anchor_point;
+    tmp = b
 
     pivot_centre = a.sum(b).multiply(0.5);
     pivot_radius = 0.5 * a.sub(b).norm();
@@ -188,9 +189,34 @@ def find_smallest_circle_sqtime(list_of_points):
     if all(pivot_circle.is_point_inside(p) for p in list_of_points):
         smallest_circle = pivot_circle;
     else:
-        pass
+        in_progress = True
+        while in_progress:
+            in_progress = False
+            final_radius = pivot_radius
+            final_point = None
+            final_centre = smallest_circle.centre
+            for p in list_of_points:
+                if p is not a and p is not b:
+                    obtuse_point = get_vertex_with_obtuse_angle(a, b, p)
+                    if obtuse_point is not None:
+                        if a == obtuse_point:
+                            a = p
+                            in_progress = True
+                            break
+                        if b == obtuse_point:
+                            b = p
+                            in_progress = True
+                            break
+                        continue
 
+                    circle = reduced_circle(smallest_circle, a, pivot_centre, p)
+                    if final_radius < circle.radius < smallest_circle.radius:
+                        final_radius = circle.radius
+                        final_centre = circle.centre
+                        final_point = p
 
+        smallest_circle.centre = final_centre
+        smallest_circle.radius = final_radius
 
     return smallest_circle
 
@@ -236,7 +262,7 @@ if __name__ == '__main__':
 
     fig.canvas.mpl_connect('button_press_event', button_press_callback)
 
-    list_of_points = read_list_of_points("TestCase0.txt");
+    list_of_points = read_list_of_points("TrickyPoints.txt");
     list_scaled = list();
     for p in list_of_points:
         scaled_point = (p.sum(Point2D(10, 10))).multiply(0.05)
