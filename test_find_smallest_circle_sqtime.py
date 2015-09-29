@@ -40,10 +40,10 @@ class TestFind_smallest_circle_sqtime(TestCase):
         self.assertEqual(round(circle1.radius, 3), round(circle2.radius, 3));
 
 
-    def test_random(self):
+    def test_random(self, number_of_points):
 
         thelist = list();
-        for i in range(4):
+        for i in range(number_of_points):
             thelist.append(Point2D(random.uniform(-10.0, 10.0), random.uniform(-10.0, 10.0)));
 
         write_list_of_points(thelist, "RandomPoints.txt");
@@ -55,8 +55,8 @@ class TestFind_smallest_circle_sqtime(TestCase):
         self.assertEqual(round(circle1.centre.get_y(), 3), round(circle2.centre.get_y(), 3));
         self.assertEqual(round(circle1.radius, 3), round(circle2.radius, 3));
 
-    def test_from_file(self):
-        thelist = read_list_of_points("TestCase0.txt");
+    def test_from_file(self, file_name):
+        thelist = read_list_of_points(file_name);
 
         circle1 = find_smallest_circle_directly(thelist);
         circle2 = find_smallest_circle_sqtime(thelist);
@@ -79,5 +79,9 @@ class TestFind_smallest_circle_sqtime(TestCase):
         self.assertEqual(circle2.radius, 1.0077822185373186);
 
         self.test_tricky(); print "Tricky test passed"
-        self.test_from_file(); print "File test passed"
+        self.test_from_file("TestCase0.txt"); print "File test passed"
+        self.test_from_file("TestCase1.txt"); print "File test passed"
+        self.test_random(5); print "Random test 1 passsed"
+        self.test_random(10); print "Random test 2 passsed"
+        self.test_random(50); print "Random test 3 passsed"
 

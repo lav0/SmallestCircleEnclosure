@@ -180,33 +180,25 @@ def find_smallest_circle_sqtime(list_of_points):
     # the pair of pivot points found:
     a = farther_point;
     b = anchor_point;
-    tmp = b
 
-    pivot_centre = a.sum(b).multiply(0.5);
-    pivot_radius = 0.5 * a.sub(b).norm();
-    pivot_circle = MyCircle(pivot_centre.get_x(), pivot_centre.get_y(), pivot_radius);
+    in_progress = True
+    while in_progress:
+        in_progress = False
 
-    if all(pivot_circle.is_point_inside(p) for p in list_of_points):
-        smallest_circle = pivot_circle;
-    else:
-        in_progress = True
-        while in_progress:
-            in_progress = False
+        pivot_centre = a.sum(b).multiply(0.5);
+        pivot_radius = 0.5 * a.sub(b).norm();
+        pivot_circle = MyCircle(pivot_centre.get_x(), pivot_centre.get_y(), pivot_radius);
+
+        if all(pivot_circle.is_point_inside(p) for p in list_of_points):
+            smallest_circle = pivot_circle
+        else:
             final_radius = pivot_radius
             final_point = None
             final_centre = smallest_circle.centre
             for p in list_of_points:
                 if p is not a and p is not b:
                     obtuse_point = get_vertex_with_obtuse_angle(a, b, p)
-                    if obtuse_point is not None:
-                        if a == obtuse_point:
-                            a = p
-                            in_progress = True
-                            break
-                        if b == obtuse_point:
-                            b = p
-                            in_progress = True
-                            break
+                    if obtuse_point is p:
                         continue
 
                     circle = reduced_circle(smallest_circle, a, pivot_centre, p)
@@ -215,8 +207,17 @@ def find_smallest_circle_sqtime(list_of_points):
                         final_centre = circle.centre
                         final_point = p
 
-        smallest_circle.centre = final_centre
-        smallest_circle.radius = final_radius
+            obtuse_point = get_vertex_with_obtuse_angle(a, b, final_point)
+            if obtuse_point is not None:
+                assert final_point is not obtuse_point, 'final is obtuse!'
+                in_progress = True
+                if obtuse_point is a:
+                    a = final_point
+                else:
+                    b = final_point
+            else:
+                smallest_circle.centre = final_centre
+                smallest_circle.radius = final_radius
 
     return smallest_circle
 
@@ -262,15 +263,15 @@ if __name__ == '__main__':
 
     fig.canvas.mpl_connect('button_press_event', button_press_callback)
 
-    list_of_points = read_list_of_points("TrickyPoints.txt");
-    list_scaled = list();
-    for p in list_of_points:
-        scaled_point = (p.sum(Point2D(10, 10))).multiply(0.05)
-        list_scaled.append(scaled_point)
-        line = plt.Line2D((scaled_point.get_x(), scaled_point.get_x()), (scaled_point.get_y(), scaled_point.get_y()), marker='o', color='y')
-        plt.gcf().gca().add_artist(line)
-
-    list_of_points = list_scaled
+    # list_of_points = read_list_of_points("TrickyPoints.txt");
+    # list_scaled = list();
+    # for p in list_of_points:
+    #     scaled_point = (p.sum(Point2D(10, 10))).multiply(0.05)
+    #     list_scaled.append(scaled_point)
+    #     line = plt.Line2D((scaled_point.get_x(), scaled_point.get_x()), (scaled_point.get_y(), scaled_point.get_y()), marker='o', color='y')
+    #     plt.gcf().gca().add_artist(line)
+    #
+    # list_of_points = list_scaled
     plt.show()
 
 else:
