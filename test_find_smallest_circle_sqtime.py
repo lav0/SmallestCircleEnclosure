@@ -81,6 +81,8 @@ class TestFind_smallest_circle_sqtime(TestCase):
         self.test_tricky(); print "Tricky test passed"
         self.test_from_file("TestCase0.txt"); print "File test passed"
         self.test_from_file("TestCase1.txt"); print "File test passed"
+        self.test_from_file("TestCaseBig.txt"); print "File test passed"
+        #self.test_from_file("TestCase2.txt"); print "File test passed"
         self.test_random(5); print "Random test 1 passsed"
         self.test_random(10); print "Random test 2 passsed"
         self.test_random(50); print "Random test 3 passsed"

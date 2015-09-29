@@ -162,38 +162,37 @@ def get_vertex_with_obtuse_angle(p1, p2, p3):
 @time_measure_decorator
 def find_smallest_circle_sqtime(list_of_points):
     gravity_centre = find_gravity_centre(list_of_points)
-    smallest_circle = MyCircle(gravity_centre.get_x(),gravity_centre.get_y(), .1);
+    smallest_circle = MyCircle(gravity_centre.get_x(),gravity_centre.get_y(), .1)
 
-    farther_point = max(list_of_points, key=lambda p: smallest_circle.centre.sub(p).norm());
-    smallest_circle.radius = smallest_circle.centre.sub(farther_point).norm();
+    farther_point = max(list_of_points, key=lambda p: smallest_circle.centre.sub(p).norm())
+    smallest_circle.radius = smallest_circle.centre.sub(farther_point).norm()
 
-    anchor_radius = 0.0;
-    anchor_point = farther_point;
+    anchor_radius = 0.0
+    anchor_point = farther_point
     for p in list_of_points:
         if p is not farther_point:
-            circle = reduced_circle(smallest_circle, farther_point, farther_point, p);
+            circle = reduced_circle(smallest_circle, farther_point, farther_point, p)
             if anchor_radius < circle.radius:
-                anchor_radius = circle.radius;
-                anchor_point = p;
-                smallest_circle = circle;
+                anchor_radius = circle.radius
+                anchor_point = p
+                smallest_circle = circle
 
     # the pair of pivot points found:
-    a = farther_point;
-    b = anchor_point;
+    a = farther_point
+    b = anchor_point
 
     in_progress = True
     while in_progress:
         in_progress = False
 
-        pivot_centre = a.sum(b).multiply(0.5);
-        pivot_radius = 0.5 * a.sub(b).norm();
-        pivot_circle = MyCircle(pivot_centre.get_x(), pivot_centre.get_y(), pivot_radius);
+        pivot_centre = a.sum(b).multiply(0.5)
+        pivot_radius = 0.5 * a.sub(b).norm()
+        pivot_circle = MyCircle(pivot_centre.get_x(), pivot_centre.get_y(), pivot_radius)
 
         if all(pivot_circle.is_point_inside(p) for p in list_of_points):
             smallest_circle = pivot_circle
         else:
             final_radius = pivot_radius
-            final_point = None
             final_centre = smallest_circle.centre
             for p in list_of_points:
                 if p is not a and p is not b:
@@ -207,6 +206,7 @@ def find_smallest_circle_sqtime(list_of_points):
                         final_centre = circle.centre
                         final_point = p
 
+            assert isinstance(final_point, Point2D)
             obtuse_point = get_vertex_with_obtuse_angle(a, b, final_point)
             if obtuse_point is not None:
                 assert final_point is not obtuse_point, 'final is obtuse!'
@@ -263,7 +263,7 @@ if __name__ == '__main__':
 
     fig.canvas.mpl_connect('button_press_event', button_press_callback)
 
-    # list_of_points = read_list_of_points("TrickyPoints.txt");
+    # list_of_points = read_list_of_points("TestCase2.txt");
     # list_scaled = list();
     # for p in list_of_points:
     #     scaled_point = (p.sum(Point2D(10, 10))).multiply(0.05)
