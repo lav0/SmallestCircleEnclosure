@@ -3,6 +3,8 @@ from unittest import TestCase
 from exp4_draw_clicks import Point2D
 from exp4_draw_clicks import MyCircle
 from exp4_draw_clicks import reduced_circle
+from exp4_draw_clicks import reduced_circle_new
+from exp4_draw_clicks import MyLine2D
 from exp4_draw_clicks import get_vertex_with_obtuse_angle
 from math import pi
 from math import sin
@@ -21,7 +23,7 @@ class TestReduced_circle(unittest.TestCase):
         point_on = self.get_random_point()
         point_centre = self.get_random_point()
         norm = point_on.sub(point_centre).norm()
-        circle = MyCircle(point_centre.get_x(), point_centre.get_y(), norm)
+        circle = MyCircle(point_centre, norm)
 
         self.assertTrue(circle.is_point_on_edge(point_on))
 
@@ -29,6 +31,11 @@ class TestReduced_circle(unittest.TestCase):
         point_aim = self.get_random_point()
 
         new_circle = reduced_circle(circle, point_on, point_along, point_aim);
+        new_circle_new = reduced_circle_new(point_on, point_aim, MyLine2D(circle.centre, point_along))
+
+        self.assertEqual(round(new_circle.centre.get_x(), 4), round(new_circle_new.centre.get_x(), 4))
+        self.assertEqual(round(new_circle.centre.get_y(), 4), round(new_circle_new.centre.get_y(), 4))
+        self.assertEqual(round(new_circle.radius, 4), round(new_circle_new.radius, 4))
 
         self.assertTrue(new_circle.is_point_on_edge(point_on))
         self.assertTrue(new_circle.is_point_on_edge(point_aim))
@@ -54,7 +61,7 @@ class TestReduced_circle(unittest.TestCase):
 
     def test_reduced_circle(self):
         point_on = Point2D(1.0, .0)
-        circle = MyCircle(.0, .0, 1.0)
+        circle = MyCircle(Point2D(.0, .0), 1.0)
 
         self.assertTrue(circle.is_point_on_edge(point_on))
 
@@ -67,6 +74,17 @@ class TestReduced_circle(unittest.TestCase):
         red_circle0 = reduced_circle(circle, point_on, point_on, p0)
         red_circle1 = reduced_circle(circle, point_on, point_on, p1)
 
+        line = MyLine2D(circle.centre, point_on)
+        red_circle_new0 = reduced_circle_new(point_on, p0, line)
+        red_circle_new1 = reduced_circle_new(point_on, p1, line)
+
+        self.assertEqual(0.25, red_circle_new0.centre.get_x())
+        self.assertEqual(0.0, red_circle_new0.centre.get_y())
+        self.assertEqual(0.75, red_circle_new0.radius)
+        self.assertEqual(0.25, red_circle_new1.centre.get_x())
+        self.assertEqual(0.0, red_circle_new1.centre.get_y())
+        self.assertEqual(0.75, red_circle_new1.radius)
+
         self.assertEqual(0.25, red_circle0.centre.get_x())
         self.assertEqual(0.0, red_circle0.centre.get_y())
         self.assertEqual(0.75, red_circle0.radius)
@@ -77,6 +95,11 @@ class TestReduced_circle(unittest.TestCase):
         point_along = Point2D(0.5, 0.5);
 
         red_circle2 = reduced_circle(circle, point_on, point_along, p1);
+        red_circle_new2 = reduced_circle_new(point_on, p1, MyLine2D(circle.centre, point_along))
+
+        self.assertEqual(red_circle2.centre.get_x(), red_circle_new2.centre.get_x())
+        self.assertEqual(red_circle2.centre.get_y(), red_circle_new2.centre.get_y())
+        self.assertEqual(red_circle2.radius, red_circle_new2.radius)
 
         centre = red_circle2.centre;
         dist1 = centre.sub(point_on).norm();
@@ -94,3 +117,4 @@ class TestReduced_circle(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+

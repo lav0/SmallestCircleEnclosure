@@ -1,3 +1,4 @@
+from __builtin__ import isinstance
 import matplotlib.pyplot as plt
 import numpy as np
 import time
@@ -19,8 +20,8 @@ def time_measure_decorator(function):
     return wrapper;
 
 class MyCircle():
-    def __init__(self, x, y, r=1.0):
-        self.centre, self.radius = Point2D(x, y), r;
+    def __init__(self, p, r=1.0):
+        self.centre, self.radius = p, r;
 
     def is_point_on_edge(self, point):
         distance_to_centre = point.sub(self.centre).norm();
@@ -41,16 +42,20 @@ class MyLine2D():
 
     # coefficients (A,B,C) in form: Ax + By = C
     def coefs(self):
-        yy = self.second.get_y() - self.first.get_y();
-        xx = self.second.get_x() - self.first.get_x();
-        return yy, -xx, yy * self.first.get_x() - xx * self.first.get_y();
+        yy = self.second.get_y() - self.first.get_y()
+        xx = self.second.get_x() - self.first.get_x()
+        return yy, -xx, yy * self.first.get_x() - xx * self.first.get_y()
+
+    def orthogonal_vector(self):
+        yy, xx, cc = self.coefs()
+        return Point2D(yy, xx)
 
     def intersection(self, other):
-        a1, b1, c1 = self.coefs();
-        a2, b2, c2 = other.coefs();
-        result = solve_simple_linear_system_cramer(a1, b1, c1, a2, b2, c2);
-        if result is None: return None;
-        return Point2D(result[0], result[1]);
+        a1, b1, c1 = self.coefs()
+        a2, b2, c2 = other.coefs()
+        result = solve_simple_linear_system_cramer(a1, b1, c1, a2, b2, c2)
+        if result is None: return None
+        return Point2D(result[0], result[1])
 
     def middle_point(self):
         return self.first.sum(self.second).multiply(0.5)
@@ -59,7 +64,7 @@ class MyLine2D():
 def construct_circle_on_pair(p1, p2):
     centre = p1.sum(p2).multiply(0.5);
     radius = p1.sub(p2).norm() * 0.5;
-    return MyCircle(centre.get_x(), centre.get_y(), radius);
+    return MyCircle(centre, radius);
 
 
 def construct_circle_on_triple(p1, p2, p3):
@@ -82,35 +87,50 @@ def construct_circle_on_triple(p1, p2, p3):
     else:
         sub = point.sub(p1);
         radius = np.sqrt(sub.get_x() ** 2 + sub.get_y() ** 2);
-        return MyCircle(point.get_x(), point.get_y(), radius);
+        return MyCircle(point, radius);
 
 
 def check_and_replace(smallest_circle, circle, list_of_points):
+    reduced = False
     if smallest_circle is not None:
         if smallest_circle.radius > circle.radius:
             if all(circle.is_point_inside(p) for p in list_of_points):
                 smallest_circle = circle;
+                reduced = True
     else:
         if all(circle.is_point_inside(p) for p in list_of_points):
             smallest_circle = circle;
-    return smallest_circle;
+            reduced = True
+    return smallest_circle, reduced;
 
 
 @time_measure_decorator
-def find_smallest_circle_directly(list_of_points):
+def find_smallest_circle_directly(a_list_of_points):
     smallest_circle = None;
-    for p in list_of_points:
-        for r in list_of_points:
+    pivot_points = list()
+    for p in a_list_of_points:
+        for r in a_list_of_points:
             if p is not r:
                 circle = construct_circle_on_pair(r, p);
-                smallest_circle = check_and_replace(smallest_circle, circle, list_of_points);
-                for q in list_of_points:
+                smallest_circle, reduced = check_and_replace(smallest_circle, circle, a_list_of_points);
+                if reduced: pivot_points = [p, r]
+                for q in a_list_of_points:
                     if q is not p and q is not r:
                         circle = construct_circle_on_triple(p, r, q);
-                        smallest_circle = check_and_replace(smallest_circle, circle, list_of_points);
+                        smallest_circle, reduced = check_and_replace(smallest_circle, circle, a_list_of_points);
+                        if reduced: pivot_points = [p, r, q]
 
-    return smallest_circle;
+    return smallest_circle, pivot_points;
 
+def reduced_circle_new(point1, point2, line):
+    connect_line = MyLine2D(point1, point2)
+    mid = connect_line.middle_point()
+    orthogonal = connect_line.orthogonal_vector()
+    cross_line = MyLine2D(mid, mid.sum(orthogonal))
+
+    result = cross_line.intersection(line)
+    if result is None: raise ValueError("Cannot reduce circle")
+    return MyCircle(result, result.sub(point1).norm())
 
 def reduced_circle(circle, point_on_circle, point_on_line_along, point_inside):
     #
@@ -135,12 +155,12 @@ def reduced_circle(circle, point_on_circle, point_on_line_along, point_inside):
     result = solve_simple_linear_system_cramer(a1, -b1, c1, a2, b2, c2);
     if result is None: raise ValueError("Cannot reduce circle");
     new_point = Point2D(result[0],result[1]);
-    return MyCircle(result[0], result[1], new_point.sub(point_on_circle).norm());
+    return MyCircle(Point2D(result[0], result[1]), new_point.sub(point_on_circle).norm());
 
-def find_gravity_centre(list_of_points):
-    inv_number_of_elements = 1.0 / len(list_of_points);
-    return Point2D(inv_number_of_elements * sum(p.get_x() for p in list_of_points),
-                   inv_number_of_elements * sum(p.get_y() for p in list_of_points));
+def find_gravity_centre(a_list_of_points):
+    inv_number_of_elements = 1.0 / len(a_list_of_points);
+    return Point2D(inv_number_of_elements * sum(p.get_x() for p in a_list_of_points),
+                   inv_number_of_elements * sum(p.get_y() for p in a_list_of_points));
 
 def get_vertex_with_obtuse_angle(p1, p2, p3):
     squared_length1 = p1.sub(p2).squared_norm();
@@ -160,18 +180,19 @@ def get_vertex_with_obtuse_angle(p1, p2, p3):
 
 
 @time_measure_decorator
-def find_smallest_circle_sqtime(list_of_points):
-    gravity_centre = find_gravity_centre(list_of_points)
-    smallest_circle = MyCircle(gravity_centre.get_x(),gravity_centre.get_y(), .1)
+def find_smallest_circle_sqtime(a_list_of_points):
+    global pivot_points, pivot_points
+    gravity_centre = find_gravity_centre(a_list_of_points)
+    smallest_circle = MyCircle(gravity_centre, .1)
 
-    farther_point = max(list_of_points, key=lambda p: smallest_circle.centre.sub(p).norm())
+    farther_point = max(a_list_of_points, key=lambda p: smallest_circle.centre.sub(p).norm())
     smallest_circle.radius = smallest_circle.centre.sub(farther_point).norm()
 
     anchor_radius = 0.0
     anchor_point = farther_point
-    for p in list_of_points:
+    for p in a_list_of_points:
         if p is not farther_point:
-            circle = reduced_circle(smallest_circle, farther_point, farther_point, p)
+            circle = reduced_circle_new(farther_point, p, MyLine2D(smallest_circle.centre, farther_point))
             if anchor_radius < circle.radius:
                 anchor_radius = circle.radius
                 anchor_point = p
@@ -185,28 +206,33 @@ def find_smallest_circle_sqtime(list_of_points):
     while in_progress:
         in_progress = False
 
-        pivot_centre = a.sum(b).multiply(0.5)
-        pivot_radius = 0.5 * a.sub(b).norm()
-        pivot_circle = MyCircle(pivot_centre.get_x(), pivot_centre.get_y(), pivot_radius)
+        two_points_based_centre = a.sum(b).multiply(0.5)
+        two_points_based_radius = 0.5 * a.sub(b).norm()
+        two_points_based_circle = MyCircle(two_points_based_centre, two_points_based_radius)
 
-        if all(pivot_circle.is_point_inside(p) for p in list_of_points):
-            smallest_circle = pivot_circle
+        if all(two_points_based_circle.is_point_inside(p) for p in a_list_of_points):
+            smallest_circle = two_points_based_circle
+            pivot_points = [a, b]
         else:
-            final_radius = pivot_radius
+            final_radius = two_points_based_radius
+            final_point = None
             final_centre = smallest_circle.centre
-            for p in list_of_points:
+            for p in a_list_of_points:
                 if p is not a and p is not b:
                     obtuse_point = get_vertex_with_obtuse_angle(a, b, p)
                     if obtuse_point is p:
                         continue
 
-                    circle = reduced_circle(smallest_circle, a, pivot_centre, p)
+                    line_ab = MyLine2D(a, b)
+                    mid = line_ab.middle_point()
+                    line_along = MyLine2D(mid, mid.sum(line_ab.orthogonal_vector()))
+                    circle = reduced_circle_new(a, p, line_along)
                     if final_radius < circle.radius < smallest_circle.radius:
                         final_radius = circle.radius
                         final_centre = circle.centre
                         final_point = p
 
-            assert isinstance(final_point, Point2D)
+#            assert isinstance(final_point, Point2D)
             obtuse_point = get_vertex_with_obtuse_angle(a, b, final_point)
             if obtuse_point is not None:
                 assert final_point is not obtuse_point, 'final is obtuse!'
@@ -218,8 +244,15 @@ def find_smallest_circle_sqtime(list_of_points):
             else:
                 smallest_circle.centre = final_centre
                 smallest_circle.radius = final_radius
+#                assert final_point is not a and not b
+                if final_point is not None:
+                    pivot_points = [a, b, final_point]
+                else:
+                    pivot_points = [a, b]
 
-    return smallest_circle
+    assert isinstance(pivot_points, list)
+
+    return smallest_circle, pivot_points
 
 
 list_of_points = list()
@@ -230,8 +263,8 @@ def button_press_callback(event):
 
     if event.button != 1:
         backup1, backup2 = circle1, circle2;
-        circle1 = find_smallest_circle_directly(list_of_points);
-        circle2 = find_smallest_circle_sqtime(list_of_points);
+        circle1, pivot_points1 = find_smallest_circle_directly(list_of_points);
+        circle2, pivot_points2 = find_smallest_circle_sqtime(list_of_points);
         print str(len(list_of_points)) + " points";
         if circle1 is not None:
             circle1 = circle1.to_plt('g');
@@ -263,15 +296,15 @@ if __name__ == '__main__':
 
     fig.canvas.mpl_connect('button_press_event', button_press_callback)
 
-    # list_of_points = read_list_of_points("TestCase2.txt");
-    # list_scaled = list();
-    # for p in list_of_points:
-    #     scaled_point = (p.sum(Point2D(10, 10))).multiply(0.05)
-    #     list_scaled.append(scaled_point)
-    #     line = plt.Line2D((scaled_point.get_x(), scaled_point.get_x()), (scaled_point.get_y(), scaled_point.get_y()), marker='o', color='y')
-    #     plt.gcf().gca().add_artist(line)
-    #
-    # list_of_points = list_scaled
+    list_of_points = read_list_of_points("TestCase5.txt");
+    list_scaled = list();
+    for p in list_of_points:
+        scaled_point = (p.sum(Point2D(10, 10))).multiply(0.05)#.sub(Point2D(.5,.5))
+        list_scaled.append(scaled_point)
+        line = plt.Line2D((scaled_point.get_x(), scaled_point.get_x()), (scaled_point.get_y(), scaled_point.get_y()), marker='o', color='y')
+        plt.gcf().gca().add_artist(line)
+
+    list_of_points = list_scaled
     plt.show()
 
 else:

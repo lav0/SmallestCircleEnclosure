@@ -32,15 +32,15 @@ class TestFind_smallest_circle_sqtime(TestCase):
             thelist.append(opposite_point);
             gravity_centre = find_gravity_centre(thelist);
 
-        circle1 = find_smallest_circle_directly(thelist);
-        circle2 = find_smallest_circle_sqtime(thelist);
+        circle1, pivot_points1 = find_smallest_circle_directly(thelist);
+        circle2, pivot_point2 = find_smallest_circle_sqtime(thelist);
 
         self.assertEqual(round(circle1.centre.get_x(), 3), round(circle2.centre.get_x(), 3));
         self.assertEqual(round(circle1.centre.get_y(), 3), round(circle2.centre.get_y(), 3));
         self.assertEqual(round(circle1.radius, 3), round(circle2.radius, 3));
 
 
-    def test_random(self, number_of_points):
+    def test_random(self, number_of_points, test_by_pivots = False):
 
         thelist = list();
         for i in range(number_of_points):
@@ -48,28 +48,42 @@ class TestFind_smallest_circle_sqtime(TestCase):
 
         write_list_of_points(thelist, "RandomPoints.txt");
 
-        circle1 = find_smallest_circle_directly(thelist);
-        circle2 = find_smallest_circle_sqtime(thelist);
+        circle1, pivot_points1 = find_smallest_circle_directly(thelist);
+        circle2, pivot_points2 = find_smallest_circle_sqtime(thelist);
 
-        self.assertEqual(round(circle1.centre.get_x(), 3), round(circle2.centre.get_x(), 3));
-        self.assertEqual(round(circle1.centre.get_y(), 3), round(circle2.centre.get_y(), 3));
-        self.assertEqual(round(circle1.radius, 3), round(circle2.radius, 3));
+        if test_by_pivots:
+            p1_in_p2 = all(p in pivot_points1 for p in pivot_points2)
+            p2_in_p1 = all(p in pivot_points2 for p in pivot_points1)
 
-    def test_from_file(self, file_name):
+            self.assertTrue(p1_in_p2)
+            self.assertTrue(p2_in_p1)
+        else:
+            self.assertEqual(round(circle1.centre.get_x(), 3), round(circle2.centre.get_x(), 3));
+            self.assertEqual(round(circle1.centre.get_y(), 3), round(circle2.centre.get_y(), 3));
+            self.assertEqual(round(circle1.radius, 3), round(circle2.radius, 3));
+
+    def test_from_file(self, file_name, test_by_pivots = False):
         thelist = read_list_of_points(file_name);
 
-        circle1 = find_smallest_circle_directly(thelist);
-        circle2 = find_smallest_circle_sqtime(thelist);
+        circle1, pivot_points1 = find_smallest_circle_directly(thelist);
+        circle2, pivot_points2 = find_smallest_circle_sqtime(thelist);
 
-        self.assertEqual(round(circle1.centre.get_x(), 3), round(circle2.centre.get_x(), 3));
-        self.assertEqual(round(circle1.centre.get_y(), 3), round(circle2.centre.get_y(), 3));
-        self.assertEqual(round(circle1.radius, 3), round(circle2.radius, 3));
+        if test_by_pivots:
+            p1_in_p2 = all(p in pivot_points1 for p in pivot_points2)
+            p2_in_p1 = all(p in pivot_points2 for p in pivot_points1)
+
+            self.assertTrue(p1_in_p2)
+            self.assertTrue(p2_in_p1)
+        else:
+            self.assertEqual(round(circle1.centre.get_x(), 3), round(circle2.centre.get_x(), 3));
+            self.assertEqual(round(circle1.centre.get_y(), 3), round(circle2.centre.get_y(), 3));
+            self.assertEqual(round(circle1.radius, 3), round(circle2.radius, 3));
 
 
     def test_find_smallest_circle_sqtime(self):
         thelist = [Point2D(1.0, 0.0), Point2D(.5, .5), Point2D(-1.0, -0.25)];
-        circle1 = find_smallest_circle_directly(thelist);
-        circle2 = find_smallest_circle_sqtime(thelist);
+        circle1, pivot_points = find_smallest_circle_directly(thelist);
+        circle2, pivot_point2 = find_smallest_circle_sqtime(thelist);
 
         self.assertEqual(circle1.centre.get_x(), 0.0);
         self.assertEqual(circle1.centre.get_y(), -0.125);
@@ -80,10 +94,17 @@ class TestFind_smallest_circle_sqtime(TestCase):
 
         self.test_tricky(); print "Tricky test passed"
         self.test_from_file("TestCase0.txt"); print "File test passed"
+        self.test_from_file("TestCase0.txt", test_by_pivots=True); print "File test passed"
         self.test_from_file("TestCase1.txt"); print "File test passed"
+        self.test_from_file("TestCase1.txt", test_by_pivots=True); print "File test passed"
         self.test_from_file("TestCaseBig.txt"); print "File test passed"
-        #self.test_from_file("TestCase2.txt"); print "File test passed"
-        self.test_random(5); print "Random test 1 passsed"
-        self.test_random(10); print "Random test 2 passsed"
-        self.test_random(50); print "Random test 3 passsed"
+        self.test_from_file("TestCase3.txt", test_by_pivots=True); print "File test passed"
+        self.test_from_file("TestCase4.txt", test_by_pivots=True); print "File test passed"
+        self.test_from_file("TestCase5.txt", test_by_pivots=True); print "File test passed"
+
+        for i in range(1000):
+            self.test_random(7, test_by_pivots=True); print "Random test %i passsed", i
+
+        self.test_random(100)
+
 
