@@ -90,18 +90,12 @@ def construct_circle_on_triple(p1, p2, p3):
         return MyCircle(point, radius);
 
 
-def check_and_replace(smallest_circle, circle, list_of_points):
-    reduced = False
-    if smallest_circle is not None:
-        if smallest_circle.radius > circle.radius:
-            if all(circle.is_point_inside(p) for p in list_of_points):
-                smallest_circle = circle;
-                reduced = True
-    else:
-        if all(circle.is_point_inside(p) for p in list_of_points):
-            smallest_circle = circle;
-            reduced = True
-    return smallest_circle, reduced;
+def check_and_replace(smallest_circle, circle, a_list_of_points):
+    if smallest_circle is None or smallest_circle.radius > circle.radius:
+        if all(circle.is_point_inside(p) for p in a_list_of_points):
+            return circle, True
+
+    return smallest_circle, False;
 
 
 @time_measure_decorator
@@ -122,6 +116,7 @@ def find_smallest_circle_directly(a_list_of_points):
 
     return smallest_circle, pivot_points;
 
+
 def reduced_circle_new(point1, point2, line):
     connect_line = MyLine2D(point1, point2)
     mid = connect_line.middle_point()
@@ -131,6 +126,7 @@ def reduced_circle_new(point1, point2, line):
     result = cross_line.intersection(line)
     if result is None: raise ValueError("Cannot reduce circle")
     return MyCircle(result, result.sub(point1).norm())
+
 
 def reduced_circle(circle, point_on_circle, point_on_line_along, point_inside):
     #
@@ -157,10 +153,12 @@ def reduced_circle(circle, point_on_circle, point_on_line_along, point_inside):
     new_point = Point2D(result[0],result[1]);
     return MyCircle(Point2D(result[0], result[1]), new_point.sub(point_on_circle).norm());
 
+
 def find_gravity_centre(a_list_of_points):
     inv_number_of_elements = 1.0 / len(a_list_of_points);
     return Point2D(inv_number_of_elements * sum(p.get_x() for p in a_list_of_points),
                    inv_number_of_elements * sum(p.get_y() for p in a_list_of_points));
+
 
 def get_vertex_with_obtuse_angle(p1, p2, p3):
     squared_length1 = p1.sub(p2).squared_norm();
@@ -181,7 +179,6 @@ def get_vertex_with_obtuse_angle(p1, p2, p3):
 
 @time_measure_decorator
 def find_smallest_circle_sqtime(a_list_of_points):
-    global pivot_points, pivot_points
     gravity_centre = find_gravity_centre(a_list_of_points)
     smallest_circle = MyCircle(gravity_centre, .1)
 
@@ -296,15 +293,15 @@ if __name__ == '__main__':
 
     fig.canvas.mpl_connect('button_press_event', button_press_callback)
 
-    list_of_points = read_list_of_points("TestCase5.txt");
-    list_scaled = list();
-    for p in list_of_points:
-        scaled_point = (p.sum(Point2D(10, 10))).multiply(0.05)#.sub(Point2D(.5,.5))
-        list_scaled.append(scaled_point)
-        line = plt.Line2D((scaled_point.get_x(), scaled_point.get_x()), (scaled_point.get_y(), scaled_point.get_y()), marker='o', color='y')
-        plt.gcf().gca().add_artist(line)
-
-    list_of_points = list_scaled
+    # list_of_points = read_list_of_points("TestCase5.txt");
+    # list_scaled = list();
+    # for p in list_of_points:
+    #     scaled_point = (p.sum(Point2D(10, 10))).multiply(0.05)#.sub(Point2D(.5,.5))
+    #     list_scaled.append(scaled_point)
+    #     line = plt.Line2D((scaled_point.get_x(), scaled_point.get_x()), (scaled_point.get_y(), scaled_point.get_y()), marker='o', color='y')
+    #     plt.gcf().gca().add_artist(line)
+    #
+    # list_of_points = list_scaled
     plt.show()
 
 else:

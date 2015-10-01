@@ -97,14 +97,15 @@ class TestFind_smallest_circle_sqtime(TestCase):
         self.test_from_file("TestCase0.txt", test_by_pivots=True); print "File test passed"
         self.test_from_file("TestCase1.txt"); print "File test passed"
         self.test_from_file("TestCase1.txt", test_by_pivots=True); print "File test passed"
+        self.test_from_file("TestCase2.txt"); print "File test passed"
         self.test_from_file("TestCaseBig.txt"); print "File test passed"
         self.test_from_file("TestCase3.txt", test_by_pivots=True); print "File test passed"
         self.test_from_file("TestCase4.txt", test_by_pivots=True); print "File test passed"
         self.test_from_file("TestCase5.txt", test_by_pivots=True); print "File test passed"
 
-        for i in range(1000):
-            self.test_random(7, test_by_pivots=True); print "Random test %i passsed", i
-
-        self.test_random(100)
+        # for i in range(1000):
+        #     self.test_random(7, test_by_pivots=True); print "Random test %i passsed", i
+        #
+        # self.test_random(100)
 
 
