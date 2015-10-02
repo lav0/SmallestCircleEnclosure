@@ -82,8 +82,9 @@ def construct_circle_on_triple(p1, p2, p3):
     point = line1.intersection(line2);
 
     if point is None:
-        triple = sorted([p1, p2, p3], key=lambda v: v.get_x() + v.get_y());
-        return construct_circle_on_pair(triple[0], triple[2]);
+        # points are on the same line. take two points at ends
+        verteces = sorted([p1, p2, p3], key=lambda v: v.get_x() + v.get_y());
+        return construct_circle_on_pair(verteces[0], verteces[2]);
     else:
         sub = point.sub(p1);
         radius = np.sqrt(sub.get_x() ** 2 + sub.get_y() ** 2);
