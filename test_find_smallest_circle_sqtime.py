@@ -1,8 +1,8 @@
 from unittest import TestCase
-from exp4_draw_clicks import find_smallest_circle_directly
-from exp4_draw_clicks import find_smallest_circle_sqtime
-from exp4_draw_clicks import find_gravity_centre
-from exp4_draw_clicks import Point2D
+from SCE_Direct import find_smallest_circle_directly
+from SCE_ReduceCircle import find_smallest_circle_sqtime
+from SCE_ReduceCircle import find_gravity_centre
+from SimpleMath import Point2D
 from readwrite_list import write_list_of_points
 from readwrite_list import read_list_of_points
 import math
@@ -12,7 +12,7 @@ __author__ = 'lav'
 
 class TestFind_smallest_circle_sqtime(TestCase):
 
-    def test_tricky(self):
+    def internal_test_tricky(self):
         epsilon = 0.001
         delta   = math.sqrt(2 * epsilon - epsilon**2);
 
@@ -40,7 +40,7 @@ class TestFind_smallest_circle_sqtime(TestCase):
         self.assertEqual(round(circle1.radius, 3), round(circle2.radius, 3));
 
 
-    def test_random(self, number_of_points, test_by_pivots = False):
+    def internal_test_random(self, number_of_points, test_by_pivots = False):
 
         thelist = list();
         for i in range(number_of_points):
@@ -62,7 +62,7 @@ class TestFind_smallest_circle_sqtime(TestCase):
             self.assertEqual(round(circle1.centre.get_y(), 3), round(circle2.centre.get_y(), 3));
             self.assertEqual(round(circle1.radius, 3), round(circle2.radius, 3));
 
-    def test_from_file(self, file_name, test_by_pivots = False):
+    def internal_test_from_file(self, file_name, test_by_pivots = False):
         thelist = read_list_of_points(file_name);
 
         circle1, pivot_points1 = find_smallest_circle_directly(thelist);
@@ -92,16 +92,16 @@ class TestFind_smallest_circle_sqtime(TestCase):
         self.assertEqual(circle2.centre.get_y(), -0.125);
         self.assertEqual(circle2.radius, 1.0077822185373186);
 
-        self.test_tricky(); print "Tricky test passed"
-        self.test_from_file("TestCase0.txt"); print "File test passed"
-        self.test_from_file("TestCase0.txt", test_by_pivots=True); print "File test passed"
-        self.test_from_file("TestCase1.txt"); print "File test passed"
-        self.test_from_file("TestCase1.txt", test_by_pivots=True); print "File test passed"
-        self.test_from_file("TestCase2.txt"); print "File test passed"
-        self.test_from_file("TestCaseBig.txt"); print "File test passed"
-        self.test_from_file("TestCase3.txt", test_by_pivots=True); print "File test passed"
-        self.test_from_file("TestCase4.txt", test_by_pivots=True); print "File test passed"
-        self.test_from_file("TestCase5.txt", test_by_pivots=True); print "File test passed"
+        self.internal_test_tricky(); print "Tricky test passed"
+        self.internal_test_from_file("TestCase0.txt"); print "File test passed"
+        self.internal_test_from_file("TestCase0.txt", test_by_pivots=True); print "File test passed"
+        self.internal_test_from_file("TestCase1.txt"); print "File test passed"
+        self.internal_test_from_file("TestCase1.txt", test_by_pivots=True); print "File test passed"
+        self.internal_test_from_file("TestCase2.txt"); print "File test passed"
+        self.internal_test_from_file("TestCaseBig.txt"); print "File test passed"
+        self.internal_test_from_file("TestCase3.txt", test_by_pivots=True); print "File test passed"
+        self.internal_test_from_file("TestCase4.txt", test_by_pivots=True); print "File test passed"
+        self.internal_test_from_file("TestCase5.txt", test_by_pivots=True); print "File test passed"
 
         # for i in range(1000):
         #     self.test_random(7, test_by_pivots=True); print "Random test %i passsed", i
