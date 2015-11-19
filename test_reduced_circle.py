@@ -1,10 +1,10 @@
 import unittest
 from unittest import TestCase
-from SCE_Direct import Point2D
-from SCE_Direct import MyCircle
-from SCE_Direct import reduced_circle_new
-from SCE_Direct import MyLine2D
-from SCE_Direct import get_vertex_with_obtuse_angle
+from SimpleMath import Point2D
+from SimpleMath import MyCircle
+from SCE_ReduceCircle import reduced_circle_new
+from SimpleMath import MyLine2D
+from SimpleMath import get_vertex_with_obtuse_angle
 from math import pi
 from math import sin
 from math import cos
