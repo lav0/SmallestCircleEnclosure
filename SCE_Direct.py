@@ -1,19 +1,7 @@
 
 from SimpleMath import construct_circle_on_pair
 from SimpleMath import construct_circle_on_triple
-
-import time
-
-
-def time_measure_decorator(function):
-    def wrapper(*arg, **kw):
-        before = time.time();
-        result = function(*arg, **kw);
-        after = time.time();
-        print str(after - before) + " seconds. Function:", function.__name__;
-        return result
-
-    return wrapper;
+from TimeMeasureDecorator import time_measure_decorator
 
 
 def check_and_replace(smallest_circle, circle, a_list_of_points):

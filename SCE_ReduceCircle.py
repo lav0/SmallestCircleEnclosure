@@ -3,18 +3,7 @@ from SimpleMath import Point2D
 from SimpleMath import MyCircle
 from SimpleMath import MyLine2D
 from SimpleMath import get_vertex_with_obtuse_angle
-import time
-
-
-def time_measure_decorator(function):
-    def wrapper(*arg, **kw):
-        before = time.time()
-        result = function(*arg, **kw)
-        after = time.time()
-        print str(after - before) + " seconds. Function:", function.__name__
-        return result
-
-    return wrapper
+from TimeMeasureDecorator import time_measure_decorator
 
 
 def reduced_circle_new(point1, point2, line):
