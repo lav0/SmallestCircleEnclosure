@@ -27,12 +27,26 @@ def median_along_line(critical_points, line):
     return result
 
 
-line = MyLine2D(Point2D(0, 0), Point2D(0, 1))
+def form_pairs(points):
+    ln = len(points)
+    half = ln // 2
+    pairs = list()
+    for i in range(half):
+        t = (points[2*i], points[2*i+1])
+        pairs.append(t)
+    if ln % 2 == 1:
+        t = (points[-1], points[0])
+        pairs.append(t)
+    return pairs
 
-p1 = Point2D(0, 0.5)
-p2 = Point2D(0, 1)
-p3 = Point2D(0, 2)
-p4 = Point2D(0, 4)
 
-med = median_along_line([p1, p2, p3, p4], line)
-print med.get_x(), med.get_y()
+ppp = [Point2D(1.0, 0.0),
+       Point2D(2.5, 1.0),
+       Point2D(2.0, -1.5),
+       Point2D(0.0, -1.9),
+       Point2D(-0.5, 0.5),
+       Point2D(-1.0, 0.0)]
+
+qqq = form_pairs(ppp)
+print [ (x[0].get_x(), x[0].get_y()) for x in qqq]
+print [ (x[1].get_x(), x[1].get_y()) for x in qqq]
