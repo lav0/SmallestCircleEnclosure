@@ -1,6 +1,7 @@
 from math import sqrt
 
 epsilon = 1e-6
+SM_ZERO = 1e-12
 
 
 class Point2D():
@@ -82,10 +83,24 @@ def construct_circle_on_triple(p1, p2, p3):
 
 
 class MyLine2D():
-    def __init__(self, point1, point2):
-        self.first = point1
-        self.second = point2
-        self.direc = point2.sub(point1)
+    def __init__(self, point1, point2, coefs = None):
+        if coefs is None:
+            p1, p2 = point1, point2
+        else:
+            # coefficients (A,B,C) in form: Ax + By = C
+            assert(len(coefs) == 3)
+            a, b, c = coefs[0], coefs[1], coefs[2]
+            if abs(b) > SM_ZERO:
+                p1 = Point2D(0, c / b)
+                p2 = Point2D(b, -a + c / b)
+            elif abs(a) > SM_ZERO:
+                p1 = Point2D(0, c / a)
+                p2 = Point2D(a, -b + c / a)
+            else:
+                assert False
+        self.first = p1
+        self.second = p2
+        self.direc = p2.sub(p1)
 
     # coefficients (A,B,C) in form: Ax + By = C
     def coefs(self):
@@ -107,13 +122,27 @@ class MyLine2D():
     def middle_point(self):
         return self.first.sum(self.second).multiply(0.5)
 
+    def direction_value_on_point(self, point):
+        return self.direc.scal(point)
+
+    def is_point_on_line(self, point):
+        a, b, c = self.coefs()
+        return abs(a * point.get_x() + b * point.get_y() - c) < SM_ZERO
+
+
+def perpendicular_bisector(point1, point2):
+    connect_line = MyLine2D(point1, point2)
+    mid = connect_line.middle_point()
+    perpendicular = connect_line.orthogonal_vector()
+    return MyLine2D(mid, mid.sum(perpendicular))
+
 
 def solve_simple_linear_system_cramer(a1, b1, c1, a2, b2, c2):
     #
     #  a1*x + b1*y = c1
     #  a2*x + b2*y = c2
     #
-    det = a1 * b2 - a2 * b1;
+    det = a1 * b2 - a2 * b1
     if abs(det) < epsilon:
         return None
     return [(c1 * b2 - c2 * b1) / det, (a1 * c2 - a2 * c1) / det]

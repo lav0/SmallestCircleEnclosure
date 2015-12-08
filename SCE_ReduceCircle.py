@@ -3,16 +3,12 @@ from SimpleMath import Point2D
 from SimpleMath import MyCircle
 from SimpleMath import MyLine2D
 from SimpleMath import get_vertex_with_obtuse_angle
+from SimpleMath import perpendicular_bisector
 from TimeMeasureDecorator import time_measure_decorator
 
 
 def reduced_circle_new(point1, point2, line):
-    connect_line = MyLine2D(point1, point2)
-    mid = connect_line.middle_point()
-    orthogonal = connect_line.orthogonal_vector()
-    cross_line = MyLine2D(mid, mid.sum(orthogonal))
-
-    result = cross_line.intersection(line)
+    result = perpendicular_bisector(point1, point2).intersection(line)
     if result is None:
         raise ValueError("Cannot reduce circle")
     return MyCircle(result, result.sub(point1).norm())
