@@ -1,4 +1,5 @@
 from math import sqrt
+from math import copysign
 
 epsilon = 1e-6
 SM_ZERO = 1e-12
@@ -83,8 +84,10 @@ def construct_circle_on_triple(p1, p2, p3):
 
 
 class MyLine2D():
-    def __init__(self, point1, point2, coefs = None):
+    def __init__(self, point1=None, point2=None, coefs=None):
         if coefs is None:
+            assert point1 is not None
+            assert point2 is not None
             p1, p2 = point1, point2
         else:
             # coefficients (A,B,C) in form: Ax + By = C
@@ -94,8 +97,8 @@ class MyLine2D():
                 p1 = Point2D(0, c / b)
                 p2 = Point2D(b, -a + c / b)
             elif abs(a) > SM_ZERO:
-                p1 = Point2D(0, c / a)
-                p2 = Point2D(a, -b + c / a)
+                p1 = Point2D(c / a, 0.)
+                p2 = Point2D(-b + c / a, a)
             else:
                 assert False
         self.first = p1
@@ -128,6 +131,15 @@ class MyLine2D():
     def is_point_on_line(self, point):
         a, b, c = self.coefs()
         return abs(a * point.get_x() + b * point.get_y() - c) < SM_ZERO
+
+    def is_collinear(self, line):
+        return self.direc.dot(line.orthogonal) < SM_ZERO
+
+    def distance_to_point(self, point):
+        a, b, c = self.coefs()
+        sign = copysign(1, c)
+        lam = sign / sqrt(a**2 + b**2)
+        return lam * (a * point.get_x() + b * point.get_y() - c)
 
 
 def perpendicular_bisector(point1, point2):
