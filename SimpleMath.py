@@ -39,6 +39,9 @@ class Point2D():
     def __eq__(self, other):
         return self.sub(other).norm() < epsilon
 
+    def __hash__(self):
+        return hash(self.m_x) ^ hash(self.m_y)
+
 
 class MyCircle():
     def __init__(self, p, r=1.0):

@@ -43,6 +43,7 @@ def form_pairs(points):
 def reject_redundant_points(lst, line):
     pairs = form_pairs(lst)
     critical_points = list()
+    critpnt_to_pair_map = dict()
     rejected_points = list()
     for pair in pairs:
         intersection = pair_bisector_and_line_intersection(pair[0], pair[1], line)
@@ -55,26 +56,37 @@ def reject_redundant_points(lst, line):
                 rejected_points.append(pair[1])
             continue
         critical_points.append(intersection)
+        critpnt_to_pair_map[intersection] = pair
 
     med = median_along_line(critical_points, line)
     far = max(lst, key=lambda p: med.sub(p).squared_norm())
     med_val = line.direction_value_on_point(med)
     far_val = line.direction_value_on_point(far)
 
-    suspicious_point = list()
+    suspicious_points = list()
     if far_val > med_val:
         for p in critical_points:
             if line.direction_value_on_point(p) < med_val:
-                suspicious_point.append(p)
+                suspicious_points.append(p)
     elif far_val < med_val:
         for p in critical_points:
             if line.direction_value_on_point(p) > med_val:
-                suspicious_point.append(p)
+                suspicious_points.append(p)
     else:
         pass
 
+    for x in suspicious_points:
+        pair = critpnt_to_pair_map[x]
+        bisector = perpendicular_bisector(pair[0], pair[1])
+        med_sign = bisector.distance_to_point(med)
+        if med_sign * bisector.distance_to_point(pair[0]) > 0:
+            rejected_points.append(pair[0])
+        elif med_sign * bisector.distance_to_point(pair[1]) > 0:
+            rejected_points.append(pair[1])
+        else:
+            assert False
     
-    return far
+    return rejected_points
 
 
 ppp = [Point2D(1.0, 0.0),
@@ -88,7 +100,13 @@ ppp = [Point2D(1.0, 0.0),
 
 line2 = MyLine2D(point1=Point2D(0.,1.), point2=Point2D(2.,0.))
 
-med = reject_redundant_points(ppp, MyLine2D(coefs=[0.0, 1.0, 0.0]))
-print med.get_x()
-print med.get_y()
+while len(ppp) > 3:
+    rejected = reject_redundant_points(ppp, MyLine2D(coefs=[0.0, 1.0, 0.0]))
+    print "Rejected ", len(rejected), "items"
+    for p in rejected:
+        print p.get_x()
+        print p.get_y()
+    for p in ppp:
+        if p in rejected:
+            ppp.remove(p)
 
