@@ -30,6 +30,13 @@ class Point2D():
     def norm(self):
         return sqrt(self.squared_norm())
 
+    def normalize(self):
+        n = self.norm()
+        if abs(n) < SM_ZERO:
+            return
+        self.m_x /= n
+        self.m_y /= n
+
     def get_x(self):
         return self.m_x
 
@@ -56,10 +63,15 @@ class MyCircle():
         return distance_to_centre < self.radius + epsilon
 
 
+# construct such circle so the diameter will be p1--p2
 def construct_circle_on_pair(p1, p2):
     centre = p1.sum(p2).multiply(0.5)
     radius = p1.sub(p2).norm() * 0.5
     return MyCircle(centre, radius)
+
+
+def construct_circle_with_centre_and_point(centre, point):
+    return MyCircle(centre, point.sub(centre).norm())
 
 
 def construct_circle_on_triple(p1, p2, p3):
@@ -104,9 +116,9 @@ class MyLine2D():
                 p2 = Point2D(-b + c / a, a)
             else:
                 assert False
+        self.direc = p2.sub(p1)
         self.first = p1
         self.second = p2
-        self.direc = p2.sub(p1)
 
     # coefficients (A,B,C) in form: Ax + By = C
     def coefs(self):
@@ -143,6 +155,14 @@ class MyLine2D():
         sign = copysign(1, c)
         lam = sign / sqrt(a**2 + b**2)
         return lam * (a * point.get_x() + b * point.get_y() - c)
+
+
+def point_to_line_projection(point, line):
+    ortho_vc = line.orthogonal_vector()
+    point2 = point.sum(ortho_vc)
+    result = MyLine2D(point, point2).intersection(line)
+    assert result is not None
+    return result
 
 
 def perpendicular_bisector(point1, point2):

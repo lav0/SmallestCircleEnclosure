@@ -1,5 +1,6 @@
 __author__ = 'lav'
 
+import SimpleMath
 from SimpleMath import Point2D
 from SimpleMath import MyLine2D
 from SimpleMath import perpendicular_bisector
@@ -66,11 +67,11 @@ def reject_redundant_points(lst, line):
     suspicious_points = list()
     if far_val > med_val:
         for p in critical_points:
-            if line.direction_value_on_point(p) < med_val:
+            if line.direction_value_on_point(p) < med_val - SimpleMath.SM_ZERO:
                 suspicious_points.append(p)
     elif far_val < med_val:
         for p in critical_points:
-            if line.direction_value_on_point(p) > med_val:
+            if line.direction_value_on_point(p) > med_val + SimpleMath.SM_ZERO:
                 suspicious_points.append(p)
     else:
         pass
@@ -84,29 +85,10 @@ def reject_redundant_points(lst, line):
         elif med_sign * bisector.distance_to_point(pair[1]) > 0:
             rejected_points.append(pair[1])
         else:
+            print med_sign, bisector.distance_to_point(pair[0]), bisector.distance_to_point(pair[1])
             assert False
     
     return rejected_points
 
 
-ppp = [Point2D(1.0, 0.0),
-       Point2D(2.5, 1.0),
-       Point2D(2.0, -1.5),
-       Point2D(0.0, -1.9),
-       Point2D(-0.5, 0.5),
-       Point2D(-1.0, 0.0),
-       Point2D(0.5, -1.0),
-       Point2D(0.5, 1.5)]
-
-line2 = MyLine2D(point1=Point2D(0.,1.), point2=Point2D(2.,0.))
-
-while len(ppp) > 3:
-    rejected = reject_redundant_points(ppp, MyLine2D(coefs=[0.0, 1.0, 0.0]))
-    print "Rejected ", len(rejected), "items"
-    for p in rejected:
-        print p.get_x()
-        print p.get_y()
-    for p in ppp:
-        if p in rejected:
-            ppp.remove(p)
 

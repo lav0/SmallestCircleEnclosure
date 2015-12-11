@@ -1,6 +1,9 @@
 
 from SimpleMath import construct_circle_on_pair
 from SimpleMath import construct_circle_on_triple
+from SimpleMath import point_to_line_projection
+from SimpleMath import perpendicular_bisector
+from SimpleMath import construct_circle_with_centre_and_point
 from TimeMeasureDecorator import time_measure_decorator
 
 
@@ -31,4 +34,33 @@ def find_smallest_circle_directly(a_list_of_points):
                             pivot_points = [p, r, q]
 
     return smallest_circle, pivot_points;
+
+
+def check_smaller_circle(cur_small, suspected_centre, point, lst, pivot_points, suspected_pivot):
+    circle = construct_circle_with_centre_and_point(suspected_centre, point)
+    cur_small, reduced = check_and_replace(cur_small, circle, lst)
+    if reduced:
+        pivot_points = suspected_pivot
+    return cur_small, pivot_points
+
+
+def find_constrained_centre(lst, line):
+        smallest_circle = None
+        pivot_points = list()
+        for p in lst:
+            projection = point_to_line_projection(p, line)
+            assert line.is_point_on_line(projection)
+            smallest_circle, pivot_points = check_smaller_circle(smallest_circle,
+                                                                 projection,
+                                                                 p, lst, pivot_points, [p])
+            for q in lst:
+                if p is not q:
+                    bisector = perpendicular_bisector(p, q)
+                    intersection = bisector.intersection(line)
+                    if intersection is not None:
+                        smallest_circle, pivot_points = check_smaller_circle(smallest_circle,
+                                                                             intersection,
+                                                                             p, lst, pivot_points, [p, q])
+
+        return smallest_circle, pivot_points
 

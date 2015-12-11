@@ -39,7 +39,6 @@ class TestFind_smallest_circle_sqtime(TestCase):
         self.assertEqual(round(circle1.centre.get_y(), 3), round(circle2.centre.get_y(), 3));
         self.assertEqual(round(circle1.radius, 3), round(circle2.radius, 3));
 
-
     def internal_test_random(self, number_of_points, test_by_pivots = False):
 
         thelist = list();
@@ -78,7 +77,6 @@ class TestFind_smallest_circle_sqtime(TestCase):
             self.assertEqual(round(circle1.centre.get_x(), 3), round(circle2.centre.get_x(), 3));
             self.assertEqual(round(circle1.centre.get_y(), 3), round(circle2.centre.get_y(), 3));
             self.assertEqual(round(circle1.radius, 3), round(circle2.radius, 3));
-
 
     def test_find_smallest_circle_sqtime(self):
         thelist = [Point2D(1.0, 0.0), Point2D(.5, .5), Point2D(-1.0, -0.25)];
