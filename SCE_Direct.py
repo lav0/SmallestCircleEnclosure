@@ -19,9 +19,9 @@ def check_smaller_circle(cur_small,
                          lst,
                          pivot_points,
                          suspected_pivot,
-                         circle_builder,
+                         func, # circle_builder
                          args=None):
-    circle = circle_builder(*(suspected_pivot if args is None else args))
+    circle = func(*(suspected_pivot if args is None else args))
     cur_small, reduced = check_and_replace(cur_small, circle, lst)
     if reduced:
         pivot_points = suspected_pivot
@@ -39,14 +39,14 @@ def find_smallest_circle_directly(a_list_of_points):
                                                                      a_list_of_points,
                                                                      pivot_points,
                                                                      [p, r],
-                                                                     construct_circle_on_pair)
+                                                                     func=construct_circle_on_pair)
                 for q in a_list_of_points:
                     if q is not p and q is not r:
                         smallest_circle, pivot_points = check_smaller_circle(smallest_circle,
                                                                              a_list_of_points,
                                                                              pivot_points,
                                                                              [p, r, q],
-                                                                             construct_circle_on_triple)
+                                                                             func=construct_circle_on_triple)
 
     return smallest_circle, pivot_points
 
@@ -59,7 +59,7 @@ def find_constrained_centre(lst, line):
             assert line.is_point_on_line(projection)
             smallest_circle, pivot_points = check_smaller_circle(smallest_circle,
                                                                  lst, pivot_points, [p],
-                                                                 construct_circle_with_centre_and_point,
+                                                                 func=construct_circle_with_centre_and_point,
                                                                  args=[projection, p])
             for q in lst:
                 if p is not q:
@@ -68,7 +68,7 @@ def find_constrained_centre(lst, line):
                     if intersection is not None:
                         smallest_circle, pivot_points = check_smaller_circle(smallest_circle,
                                                                              lst, pivot_points, [p, q],
-                                                                             construct_circle_with_centre_and_point,
+                                                                             func=construct_circle_with_centre_and_point,
                                                                              args=[intersection, p])
 
         return smallest_circle, pivot_points

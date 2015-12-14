@@ -1,11 +1,11 @@
-__author__ = 'lav'
-
 import SimpleMath
 from SimpleMath import Point2D
 from SimpleMath import MyLine2D
 from SimpleMath import perpendicular_bisector
-from numpy import median
+from numpy import median as npmedian
 from numpy import array
+
+__author__ = 'lav'
 
 
 # critical value
@@ -18,7 +18,7 @@ def median_along_line(critical_points, line):
     v = list()
     for p in critical_points:
         v.append(line.direction_value_on_point(p))
-    med_value = median(array(v))
+    med_value = npmedian(array(v))
     codirect = line.direc
     perp_line = MyLine2D(None, None,
                          coefs=[codirect.get_x(), codirect.get_y(), med_value])
@@ -41,6 +41,21 @@ def form_pairs(points):
     return pairs
 
 
+def along_line_cmp(line, point, val, greater):
+    if greater:
+        return line.direction_value_on_point(point) > val + SimpleMath.SM_ZERO
+    else:
+        return line.direction_value_on_point(point) < val - SimpleMath.SM_ZERO
+
+
+def suspicious_points(critical_points, med, far, line):
+    return [p for p in critical_points if along_line_cmp(line, p, med, far < med)]
+
+
+def is_constrained_pointer_centre_found(median, farthest):
+    return abs(farthest - median) < SimpleMath.SM_ZERO
+
+
 def reject_redundant_points(lst, line):
     pairs = form_pairs(lst)
     critical_points = list()
@@ -49,9 +64,7 @@ def reject_redundant_points(lst, line):
     for pair in pairs:
         intersection = pair_bisector_and_line_intersection(pair[0], pair[1], line)
         if intersection is None:
-            d0 = line.distance_to_point(pair[0])
-            d1 = line.distance_to_point(pair[1])
-            if abs(d0) < abs(d1):
+            if abs(line.distance_to_point(pair[0])) < abs(line.distance_to_point(pair[1])):
                 rejected_points.append(pair[0])
             else:
                 rejected_points.append(pair[1])
@@ -59,24 +72,23 @@ def reject_redundant_points(lst, line):
         critical_points.append(intersection)
         critpnt_to_pair_map[intersection] = pair
 
+    #
+    # for now we just handle a single point situation which is the most common
+    # and natural one.
+    #
+
     med = median_along_line(critical_points, line)
     far = max(lst, key=lambda p: med.sub(p).squared_norm())
     med_val = line.direction_value_on_point(med)
     far_val = line.direction_value_on_point(far)
 
-    suspicious_points = list()
-    if far_val > med_val:
-        for p in critical_points:
-            if line.direction_value_on_point(p) < med_val - SimpleMath.SM_ZERO:
-                suspicious_points.append(p)
-    elif far_val < med_val:
-        for p in critical_points:
-            if line.direction_value_on_point(p) > med_val + SimpleMath.SM_ZERO:
-                suspicious_points.append(p)
-    else:
+    if is_constrained_pointer_centre_found(med_val, far_val):
+        # the centre is found. need to handle
         pass
 
-    for x in suspicious_points:
+    suspicious_pnts = suspicious_points(critical_points, med_val, far_val, line)
+
+    for x in suspicious_pnts:
         pair = critpnt_to_pair_map[x]
         bisector = perpendicular_bisector(pair[0], pair[1])
         med_sign = bisector.distance_to_point(med)
