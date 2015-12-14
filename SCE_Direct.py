@@ -42,10 +42,6 @@ def find_smallest_circle_directly(a_list_of_points):
                                                                      construct_circle_on_pair)
                 for q in a_list_of_points:
                     if q is not p and q is not r:
-                        circle = construct_circle_on_triple(p, r, q);
-                        smallest_circle, reduced = check_and_replace(smallest_circle, circle, a_list_of_points);
-                        if reduced:
-                            pivot_points = [p, r, q]
                         smallest_circle, pivot_points = check_smaller_circle(smallest_circle,
                                                                              a_list_of_points,
                                                                              pivot_points,
