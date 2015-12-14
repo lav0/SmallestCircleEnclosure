@@ -12,7 +12,7 @@ def check_and_replace(smallest_circle, circle, a_list_of_points):
         if all(circle.is_point_inside(p) for p in a_list_of_points):
             return circle, True
 
-    return smallest_circle, False;
+    return smallest_circle, False
 
 
 def check_smaller_circle(cur_small,
@@ -20,8 +20,8 @@ def check_smaller_circle(cur_small,
                          pivot_points,
                          suspected_pivot,
                          circle_builder,
-                         args):
-    circle = circle_builder(*args)
+                         args=None):
+    circle = circle_builder(*(suspected_pivot if args is None else args))
     cur_small, reduced = check_and_replace(cur_small, circle, lst)
     if reduced:
         pivot_points = suspected_pivot
@@ -39,8 +39,7 @@ def find_smallest_circle_directly(a_list_of_points):
                                                                      a_list_of_points,
                                                                      pivot_points,
                                                                      [p, r],
-                                                                     construct_circle_on_pair,
-                                                                     args=[r, p])
+                                                                     construct_circle_on_pair)
                 for q in a_list_of_points:
                     if q is not p and q is not r:
                         circle = construct_circle_on_triple(p, r, q);
@@ -51,8 +50,7 @@ def find_smallest_circle_directly(a_list_of_points):
                                                                              a_list_of_points,
                                                                              pivot_points,
                                                                              [p, r, q],
-                                                                             construct_circle_on_triple,
-                                                                             args=[p, r, q])
+                                                                             construct_circle_on_triple)
 
     return smallest_circle, pivot_points
 
@@ -78,5 +76,3 @@ def find_constrained_centre(lst, line):
                                                                              args=[intersection, p])
 
         return smallest_circle, pivot_points
-
-
