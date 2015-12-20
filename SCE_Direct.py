@@ -30,7 +30,7 @@ def check_smaller_circle(cur_small,
 
 @time_measure_decorator
 def find_smallest_circle_directly(a_list_of_points):
-    smallest_circle = None;
+    smallest_circle = None
     pivot_points = list()
     for p in a_list_of_points:
         for r in a_list_of_points:

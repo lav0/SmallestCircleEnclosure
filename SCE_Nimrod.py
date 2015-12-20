@@ -2,8 +2,10 @@ import SimpleMath
 from SimpleMath import Point2D
 from SimpleMath import MyLine2D
 from SimpleMath import perpendicular_bisector
+from SCE_Direct import find_constrained_centre
 from numpy import median as npmedian
 from numpy import array
+from math import copysign
 
 __author__ = 'lav'
 
@@ -74,7 +76,8 @@ def reject_redundant_points(lst, line):
 
     #
     # for now we just handle a single point situation which is the most common
-    # and natural one.
+    # and natural one. for further consideration try to find all points whose
+    # distance to the median point is ~(far-med) distance.
     #
 
     med = median_along_line(critical_points, line)
@@ -101,6 +104,38 @@ def reject_redundant_points(lst, line):
             assert False
     
     return rejected_points
+
+
+def determine_enclosure_centre_side(lst, line):
+    while len(lst) > 3:
+        rejected = reject_redundant_points(lst, line)
+        if not rejected:
+            chk1 = len(lst)
+            last = lst[-1]
+            lst.remove(last)
+            lst.insert(0, last)
+            chk2 = len(lst)
+            assert chk1 == chk2
+            rejected = reject_redundant_points(lst, line)
+            if not rejected:
+                assert False
+
+        for p in lst:
+            if p in rejected:
+                lst.remove(p)
+
+    print "Points count before direct search: ", len(lst)
+    circle, pivots = find_constrained_centre(lst, line)
+    if len(pivots) == 1:
+        dist = line.distance_to_point(pivots[0])
+    elif len(pivots) == 2:
+        middle = pivots[0].sum(pivots[1]).multiply(0.5)
+        dist = line.distance_to_point(middle)
+    else:
+        assert False
+
+    return copysign(1, dist)
+
 
 
 
