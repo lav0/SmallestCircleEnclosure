@@ -8,15 +8,26 @@ from SimpleMath import get_vertex_with_obtuse_angle
 from math import pi
 from math import sin
 from math import cos
-import random
+from random import uniform
 
 __author__ = 'lav'
+
+
+def generate_random_point(spread):
+    return Point2D(uniform(-spread / 2, spread / 2), uniform(-spread / 2, spread / 2))
+
+
+def generate_random_points_list(number_of_points, spread):
+    thelist = list()
+    for i in range(number_of_points):
+        thelist.append(generate_random_point(spread))
+    return thelist
 
 
 class TestReduced_circle(unittest.TestCase):
 
     def get_random_point(self):
-        return Point2D(random.uniform(-10.0, 10.0), random.uniform(-10.0, 10.0))
+        return generate_random_point(20.0)
 
     def test_random(self):
         point_on = self.get_random_point()
@@ -80,7 +91,6 @@ class TestReduced_circle(unittest.TestCase):
 
         for i in range(500):
             self.test_random()
-
 
 
 if __name__ == '__main__':
