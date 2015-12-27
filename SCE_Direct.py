@@ -51,7 +51,7 @@ def find_smallest_circle_directly(a_list_of_points):
     return smallest_circle, pivot_points
 
 
-def find_constrained_centre(lst, line):
+def find_constrained_centre_directly(lst, line):
         smallest_circle = None
         pivot_points = list()
         for p in lst:

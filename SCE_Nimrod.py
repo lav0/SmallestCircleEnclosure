@@ -2,7 +2,7 @@ import SimpleMath
 from SimpleMath import Point2D
 from SimpleMath import MyLine2D
 from SimpleMath import perpendicular_bisector
-from SCE_Direct import find_constrained_centre
+from SCE_Direct import find_constrained_centre_directly
 from numpy import median as npmedian
 from numpy import array
 from math import copysign
@@ -106,27 +106,27 @@ def reject_redundant_points(lst, line):
     return rejected_points
 
 
-def determine_enclosure_centre_side(lst, line):
-    while len(lst) > 3:
-        rejected = reject_redundant_points(lst, line)
+def determine_enclosure_centre_side(points, line):
+    cpoints = (points)
+    while len(cpoints) > 3:
+        rejected = reject_redundant_points(cpoints, line)
         if not rejected:
-            chk1 = len(lst)
-            last = lst[-1]
-            lst.remove(last)
-            lst.insert(0, last)
-            chk2 = len(lst)
+            chk1 = len(cpoints)
+            last = cpoints[-1]
+            cpoints.remove(last)
+            cpoints.insert(0, last)
+            chk2 = len(cpoints)
             assert chk1 == chk2
-            rejected = reject_redundant_points(lst, line)
+            rejected = reject_redundant_points(cpoints, line)
             if not rejected:
                 assert False
 
-        for p in lst:
+        for p in cpoints:
             if p in rejected:
-                lst.remove(p)
+                cpoints.remove(p)
 
-    #print "Points count before direct search: ", len(lst)
-    circle, pivots = find_constrained_centre(lst, line)
-    print len(pivots)
+    print "Number of points before direct search: ", len(cpoints)
+    circle, pivots = find_constrained_centre_directly(cpoints, line)
     middle = pivots[0].sum(pivots[-1]).multiply(0.5)
     dist = line.distance_to_point(middle)
 

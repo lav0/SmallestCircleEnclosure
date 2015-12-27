@@ -1,7 +1,7 @@
 from unittest import TestCase
 from SimpleMath import Point2D
 from SimpleMath import MyLine2D
-from SCE_Direct import find_constrained_centre
+from SCE_Direct import find_constrained_centre_directly
 from SCE_Nimrod import reject_redundant_points
 from random import uniform
 
@@ -47,7 +47,7 @@ class TestReject_redundant_points(TestCase):
         self.assertTrue(Point2D(1.0, 0.) in rejected)
 
     def internal_compare(self, lst, line):
-        circle, points = find_constrained_centre(lst, line)
+        circle, points = find_constrained_centre_directly(lst, line)
 
         while len(lst) > 3:
             rejected = reject_redundant_points(lst, line)

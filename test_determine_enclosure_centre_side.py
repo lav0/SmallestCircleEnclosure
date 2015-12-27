@@ -7,7 +7,7 @@ from math import copysign
 from random import uniform
 
 __author__ = 'Andrey'
-
+#perrin
 def generate_random_points_list(number_of_points, spread):
     thelist = list()
     for i in range(number_of_points):
@@ -28,7 +28,7 @@ class TestDetermine_enclosure_centre_side(TestCase):
         line1 = MyLine2D(coefs=[1.0, 0.0, 0.0])
         line2 = MyLine2D(coefs=[1.0, 1.0, 0.0])
         line3 = MyLine2D(coefs=[0.8, -0.7, 2.0])
-        for i in range(100):
+        for i in range(10):
             ppp = generate_random_points_list(10*(i+1), 20.0)
             self.internal_test_the_list(ppp)
             self.internal_test_the_list(ppp, line1)
