@@ -124,15 +124,11 @@ def determine_enclosure_centre_side(lst, line):
             if p in rejected:
                 lst.remove(p)
 
-    print "Points count before direct search: ", len(lst)
+    #print "Points count before direct search: ", len(lst)
     circle, pivots = find_constrained_centre(lst, line)
-    if len(pivots) == 1:
-        dist = line.distance_to_point(pivots[0])
-    elif len(pivots) == 2:
-        middle = pivots[0].sum(pivots[1]).multiply(0.5)
-        dist = line.distance_to_point(middle)
-    else:
-        assert False
+    print len(pivots)
+    middle = pivots[0].sum(pivots[-1]).multiply(0.5)
+    dist = line.distance_to_point(middle)
 
     return copysign(1, dist)
 
