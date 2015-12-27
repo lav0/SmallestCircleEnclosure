@@ -107,7 +107,7 @@ def reject_redundant_points(lst, line):
 
 
 def determine_enclosure_centre_side(points, line):
-    cpoints = (points)
+    cpoints = list(points)
     while len(cpoints) > 3:
         rejected = reject_redundant_points(cpoints, line)
         if not rejected:
