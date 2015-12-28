@@ -3,9 +3,11 @@ from SimpleMath import Point2D
 from SimpleMath import MyLine2D
 from SimpleMath import perpendicular_bisector
 from SCE_Direct import find_constrained_centre_directly
+from test_reduced_circle import generate_random_points_list
 from numpy import median as npmedian
 from numpy import array
 from math import copysign
+from math import pi
 
 __author__ = 'lav'
 
@@ -58,7 +60,7 @@ def is_constrained_pointer_centre_found(median, farthest):
     return abs(farthest - median) < SimpleMath.SM_ZERO
 
 
-def reject_redundant_points(lst, line):
+def reject_constrained_redundant_points(lst, line):
     pairs = form_pairs(lst)
     critical_points = list()
     critpnt_to_pair_map = dict()
@@ -109,7 +111,7 @@ def reject_redundant_points(lst, line):
 def determine_enclosure_centre_side(points, line):
     cpoints = list(points)
     while len(cpoints) > 3:
-        rejected = reject_redundant_points(cpoints, line)
+        rejected = reject_constrained_redundant_points(cpoints, line)
         if not rejected:
             chk1 = len(cpoints)
             last = cpoints[-1]
@@ -117,7 +119,7 @@ def determine_enclosure_centre_side(points, line):
             cpoints.insert(0, last)
             chk2 = len(cpoints)
             assert chk1 == chk2
-            rejected = reject_redundant_points(cpoints, line)
+            rejected = reject_constrained_redundant_points(cpoints, line)
             if not rejected:
                 assert False
 
@@ -133,5 +135,23 @@ def determine_enclosure_centre_side(points, line):
     return copysign(1, dist)
 
 
+def tmp_name(points):
+    pairs = form_pairs(points)
+    lines = dict()
+    for pair in pairs:
+        x_axis = MyLine2D(coefs=[0.0, 1.0, 0.0])
+        bisector = perpendicular_bisector(pair[0], pair[1])
+        angle = x_axis.angle(bisector)
+        if lines.has_key(angle):
+            assert False
+        lines[angle] = bisector
 
+    line_pairs = list()
+    half_pi = pi * 0.5
+    sorted_keys = sorted(lines.keys())
+    median_key = npmedian(array(sorted_keys))
 
+# for i in range(10):
+#     p = generate_random_points_list(10, 20.0)
+#     tmp_name(p)
+#     print "\n"

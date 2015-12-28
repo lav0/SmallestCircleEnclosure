@@ -1,5 +1,6 @@
 from math import sqrt
 from math import copysign
+from math import atan2
 
 epsilon = 1e-6
 SM_ZERO = 1e-12
@@ -17,6 +18,9 @@ class Point2D():
 
     def scal(self, other):
         return self.m_x * other.m_x + self.m_y * other.m_y
+
+    def vect_norm(self, other):
+        return self.m_x*other.m_y - self.m_y*other.m_x
 
     def multiply(self, coef):
         return Point2D(self.m_x * coef, self.m_y * coef)
@@ -155,6 +159,15 @@ class MyLine2D():
         sign = copysign(1, c)
         lam = sign / sqrt(a**2 + b**2)
         return lam * (a * point.get_x() + b * point.get_y() - c)
+
+    def angle(self, line):
+        v1 = self.direc
+        v2 = line.direc
+        scal = v1.scal(v2)
+        if scal < 0:
+            v2 = v2.inverted()
+            scal = v1.scal(v2)
+        return atan2(v1.vect_norm(v2), scal)
 
 
 def point_to_line_projection(point, line):
