@@ -135,23 +135,35 @@ def determine_enclosure_centre_side(points, line):
     return copysign(1, dist)
 
 
-def tmp_name(points):
+def form_angle_to_pair_map(points):
     pairs = form_pairs(points)
     lines = dict()
     for pair in pairs:
         x_axis = MyLine2D(coefs=[0.0, 1.0, 0.0])
         bisector = perpendicular_bisector(pair[0], pair[1])
         angle = x_axis.angle(bisector)
-        if lines.has_key(angle):
+        if angle in lines:
             assert False
-        lines[angle] = bisector
+        lines[angle] = (pair, bisector)
+    return lines
 
-    line_pairs = list()
-    half_pi = pi * 0.5
-    sorted_keys = sorted(lines.keys())
-    median_key = npmedian(array(sorted_keys))
 
-# for i in range(10):
-#     p = generate_random_points_list(10, 20.0)
-#     tmp_name(p)
-#     print "\n"
+def get_median_line(angle_to_pair_map):
+    med_angle = npmedian(array(angle_to_pair_map.keys()))
+    if len(angle_to_pair_map) % 2 == 1:
+        pair, bisector = angle_to_pair_map[med_angle]
+        return bisector
+    else:
+        angle_below = max([a for a in angle_to_pair_map.keys() if a < med_angle])
+        angle_above = min([a for a in angle_to_pair_map.keys() if a > med_angle])
+        pair, line_below = angle_to_pair_map[angle_below]
+        pair, line_above = angle_to_pair_map[angle_above]
+        def invert_if_x_less_zero(vector):
+            return vector.inverted() if vector.get_x() < 0.0 else vector
+        direction_below = invert_if_x_less_zero(line_below.direc.normalized())
+        direction_above = invert_if_x_less_zero(line_above.direc.normalized())
+        med_line_direction = direction_above.sum(direction_below)
+        zero_point = Point2D(0.0, 0.0)
+        return MyLine2D(point1=zero_point, point2=med_line_direction)
+
+

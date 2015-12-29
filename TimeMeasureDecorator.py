@@ -12,4 +12,14 @@ def time_measure_decorator(function):
     return wrapper
 
 
+def function_call_log_decorator(function):
+    def wrapper(*arg, **kw):
+        print "\nFunction ", function.__name__, " started"
+        result = function(*arg, **kw)
+        print "Finished ", function.__name__
+        return result
+
+    return wrapper
+
+
 __author__ = 'Andrey'

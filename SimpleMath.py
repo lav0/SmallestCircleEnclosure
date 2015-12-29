@@ -41,6 +41,11 @@ class Point2D():
         self.m_x /= n
         self.m_y /= n
 
+    def normalized(self):
+        copy = self
+        copy.normalize()
+        return copy
+
     def get_x(self):
         return self.m_x
 
@@ -152,7 +157,7 @@ class MyLine2D():
         return abs(a * point.get_x() + b * point.get_y() - c) < SM_ZERO
 
     def is_collinear(self, line):
-        return self.direc.dot(line.orthogonal) < SM_ZERO
+        return self.direc.scal(line.orthogonal_vector()) < SM_ZERO
 
     def distance_to_point(self, point):
         a, b, c = self.coefs()
