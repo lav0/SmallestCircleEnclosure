@@ -1,4 +1,4 @@
-from SimpleMath import Point2D
+from SimpleMath import Vector2D
 
 
 def write_list_of_points(thelist, filename):
@@ -15,6 +15,6 @@ def read_list_of_points(filename):
         lines = f.readlines()
         for line in lines:
             split = [s.strip() for s in line.split(",")]
-            thelist.append(Point2D(float(split[0]), float(split[1])))
+            thelist.append(Vector2D(float(split[0]), float(split[1])))
     f.close()
     return thelist

@@ -2,7 +2,7 @@ from unittest import TestCase
 from SCE_Direct import find_smallest_circle_directly
 from SCE_ReduceCircle import find_smallest_circle_sqtime
 from SCE_ReduceCircle import find_gravity_centre
-from SimpleMath import Point2D
+from SimpleMath import Vector2D
 from readwrite_list import write_list_of_points
 from readwrite_list import read_list_of_points
 import math
@@ -16,14 +16,14 @@ class TestFind_smallest_circle_sqtime(TestCase):
         epsilon = 0.001
         delta   = math.sqrt(2 * epsilon - epsilon**2);
 
-        p1 = Point2D(0.0, -1.0);
-        p2 = Point2D(-1.0+epsilon, 0.9 * delta);
-        p3 = Point2D(-math.cos(0.25*math.pi) + epsilon, math.sin(0.25*math.pi) - epsilon);
+        p1 = Vector2D(0.0, -1.0);
+        p2 = Vector2D(-1.0+epsilon, 0.9 * delta);
+        p3 = Vector2D(-math.cos(0.25*math.pi) + epsilon, math.sin(0.25*math.pi) - epsilon);
 
         thelist = [p1, p2, p3];
 
         gravity_centre = find_gravity_centre(thelist);
-        zero_point = Point2D(.0, .0);
+        zero_point = Vector2D(.0, .0);
 
         while gravity_centre.sub(zero_point).norm() > 0.001:
             opposite_point = gravity_centre.inverted();
@@ -43,7 +43,7 @@ class TestFind_smallest_circle_sqtime(TestCase):
 
         thelist = list();
         for i in range(number_of_points):
-            thelist.append(Point2D(random.uniform(-10.0, 10.0), random.uniform(-10.0, 10.0)));
+            thelist.append(Vector2D(random.uniform(-10.0, 10.0), random.uniform(-10.0, 10.0)));
 
         write_list_of_points(thelist, "RandomPoints.txt");
 
@@ -79,7 +79,7 @@ class TestFind_smallest_circle_sqtime(TestCase):
             self.assertEqual(round(circle1.radius, 3), round(circle2.radius, 3));
 
     def test_find_smallest_circle_sqtime(self):
-        thelist = [Point2D(1.0, 0.0), Point2D(.5, .5), Point2D(-1.0, -0.25)];
+        thelist = [Vector2D(1.0, 0.0), Vector2D(.5, .5), Vector2D(-1.0, -0.25)];
         circle1, pivot_points = find_smallest_circle_directly(thelist);
         circle2, pivot_point2 = find_smallest_circle_sqtime(thelist);
 

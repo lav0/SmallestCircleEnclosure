@@ -1,9 +1,9 @@
 import unittest
 from unittest import TestCase
-from SimpleMath import Point2D
+from SimpleMath import Vector2D
 from SimpleMath import MyCircle
 from SCE_ReduceCircle import reduced_circle_new
-from SimpleMath import MyLine2D
+from SimpleMath import Line2D
 from SimpleMath import get_vertex_with_obtuse_angle
 from math import pi
 from math import sin
@@ -14,7 +14,7 @@ __author__ = 'lav'
 
 
 def generate_random_point(spread):
-    return Point2D(uniform(-spread / 2, spread / 2), uniform(-spread / 2, spread / 2))
+    return Vector2D(uniform(-spread / 2, spread / 2), uniform(-spread / 2, spread / 2))
 
 
 def generate_random_points_list(number_of_points, spread):
@@ -40,19 +40,19 @@ class TestReduced_circle(unittest.TestCase):
         point_along = self.get_random_point()
         point_aim = self.get_random_point()
 
-        new_circle_new = reduced_circle_new(point_on, point_aim, MyLine2D(circle.centre, point_along))
+        new_circle_new = reduced_circle_new(point_on, point_aim, Line2D(circle.centre, point_along))
 
         self.assertTrue(new_circle_new.is_point_on_edge(point_on))
         self.assertTrue(new_circle_new.is_point_on_edge(point_aim))
 
     def test_triangle_obtuse(self):
-        point1 = Point2D(0, 0)
-        point2 = Point2D(5, 0)
-        point3 = Point2D(4, 4)
+        point1 = Vector2D(0, 0)
+        point2 = Vector2D(5, 0)
+        point3 = Vector2D(4, 4)
 
         self.assertEqual(None, get_vertex_with_obtuse_angle(point1, point2, point3));
 
-        point4 = Point2D(4, 1)
+        point4 = Vector2D(4, 1)
 
         obtuse_point1 = get_vertex_with_obtuse_angle(point1, point2, point4)
         obtuse_point2 = get_vertex_with_obtuse_angle(point1, point4, point2)
@@ -65,18 +65,18 @@ class TestReduced_circle(unittest.TestCase):
         self.assertEqual(point4, obtuse_point4);
 
     def test_reduced_circle(self):
-        point_on = Point2D(1.0, .0)
-        circle = MyCircle(Point2D(.0, .0), 1.0)
+        point_on = Vector2D(1.0, .0)
+        circle = MyCircle(Vector2D(.0, .0), 1.0)
 
         self.assertTrue(circle.is_point_on_edge(point_on))
 
         r = 0.75
         angle = 3 * pi / 4.0
 
-        p0 = Point2D(r * cos(angle) + 0.25, r * sin(angle))
-        p1 = Point2D(-0.5, .0);
+        p0 = Vector2D(r * cos(angle) + 0.25, r * sin(angle))
+        p1 = Vector2D(-0.5, .0);
 
-        line = MyLine2D(circle.centre, point_on)
+        line = Line2D(circle.centre, point_on)
         red_circle_new0 = reduced_circle_new(point_on, p0, line)
         red_circle_new1 = reduced_circle_new(point_on, p1, line)
 

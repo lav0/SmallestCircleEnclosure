@@ -6,15 +6,15 @@ epsilon = 1e-6
 SM_ZERO = 1e-12
 
 
-class Point2D():
+class Vector2D():
     def __init__(self, x, y):
         self.m_x, self.m_y = x, y
 
     def sum(self, other):
-        return Point2D(self.m_x + other.m_x, self.m_y + other.m_y)
+        return Vector2D(self.m_x + other.m_x, self.m_y + other.m_y)
 
     def sub(self, other):
-        return Point2D(self.m_x - other.m_x, self.m_y - other.m_y)
+        return Vector2D(self.m_x - other.m_x, self.m_y - other.m_y)
 
     def scal(self, other):
         return self.m_x * other.m_x + self.m_y * other.m_y
@@ -23,10 +23,10 @@ class Point2D():
         return self.m_x*other.m_y - self.m_y*other.m_x
 
     def multiply(self, coef):
-        return Point2D(self.m_x * coef, self.m_y * coef)
+        return Vector2D(self.m_x * coef, self.m_y * coef)
 
     def inverted(self):
-        return Point2D(-self.m_x, -self.m_y)
+        return Vector2D(-self.m_x, -self.m_y)
 
     def squared_norm(self):
         return self.m_x ** 2 + self.m_y ** 2
@@ -45,6 +45,9 @@ class Point2D():
         copy = self
         copy.normalize()
         return copy
+
+    def is_collinear(self, other):
+        return self.scal(other) < SM_ZERO
 
     def get_x(self):
         return self.m_x
@@ -84,17 +87,17 @@ def construct_circle_with_centre_and_point(centre, point):
 
 
 def construct_circle_on_triple(p1, p2, p3):
-    myline = MyLine2D(p1, p2)
+    myline = Line2D(p1, p2)
     na1, nb1, dumb = myline.coefs()
-    n1 = Point2D(na1, nb1)
+    n1 = Vector2D(na1, nb1)
     middle1 = myline.middle_point()
-    myline = MyLine2D(p2, p3)
+    myline = Line2D(p2, p3)
     na2, nb2, dumb = myline.coefs()
-    n2 = Point2D(na2, nb2)
+    n2 = Vector2D(na2, nb2)
     middle2 = myline.middle_point()
 
-    line1 = MyLine2D(middle1, middle1.sum(n1))
-    line2 = MyLine2D(middle2, middle2.sum(n2))
+    line1 = Line2D(middle1, middle1.sum(n1))
+    line2 = Line2D(middle2, middle2.sum(n2))
     point = line1.intersection(line2)
 
     if point is None:
@@ -107,7 +110,7 @@ def construct_circle_on_triple(p1, p2, p3):
         return MyCircle(point, radius)
 
 
-class MyLine2D():
+class Line2D():
     def __init__(self, point1=None, point2=None, coefs=None):
         if coefs is None:
             assert point1 is not None
@@ -118,11 +121,11 @@ class MyLine2D():
             assert(len(coefs) == 3)
             a, b, c = coefs[0], coefs[1], coefs[2]
             if abs(b) > SM_ZERO:
-                p1 = Point2D(0, c / b)
-                p2 = Point2D(b, -a + c / b)
+                p1 = Vector2D(0, c / b)
+                p2 = Vector2D(b, -a + c / b)
             elif abs(a) > SM_ZERO:
-                p1 = Point2D(c / a, 0.)
-                p2 = Point2D(-b + c / a, a)
+                p1 = Vector2D(c / a, 0.)
+                p2 = Vector2D(-b + c / a, a)
             else:
                 assert False
         self.direc = p2.sub(p1)
@@ -137,14 +140,14 @@ class MyLine2D():
 
     def orthogonal_vector(self):
         yy, xx, cc = self.coefs()
-        return Point2D(yy, xx)
+        return Vector2D(yy, xx)
 
     def intersection(self, other):
         a1, b1, c1 = self.coefs()
         a2, b2, c2 = other.coefs()
         result = solve_simple_linear_system_cramer(a1, b1, c1, a2, b2, c2)
         if result is None: return None
-        return Point2D(result[0], result[1])
+        return Vector2D(result[0], result[1])
 
     def middle_point(self):
         return self.first.sum(self.second).multiply(0.5)
@@ -156,8 +159,8 @@ class MyLine2D():
         a, b, c = self.coefs()
         return abs(a * point.get_x() + b * point.get_y() - c) < SM_ZERO
 
-    def is_collinear(self, line):
-        return self.direc.scal(line.orthogonal_vector()) < SM_ZERO
+    def is_parallel(self, line):
+        return self.direc.is_collinear(line.orthogonal_vector())
 
     def distance_to_point(self, point):
         a, b, c = self.coefs()
@@ -178,16 +181,16 @@ class MyLine2D():
 def point_to_line_projection(point, line):
     ortho_vc = line.orthogonal_vector()
     point2 = point.sum(ortho_vc)
-    result = MyLine2D(point, point2).intersection(line)
+    result = Line2D(point, point2).intersection(line)
     assert result is not None
     return result
 
 
 def perpendicular_bisector(point1, point2):
-    connect_line = MyLine2D(point1, point2)
+    connect_line = Line2D(point1, point2)
     mid = connect_line.middle_point()
     perpendicular = connect_line.orthogonal_vector()
-    return MyLine2D(mid, mid.sum(perpendicular))
+    return Line2D(mid, mid.sum(perpendicular))
 
 
 def solve_simple_linear_system_cramer(a1, b1, c1, a2, b2, c2):

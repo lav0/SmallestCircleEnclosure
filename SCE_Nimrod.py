@@ -1,6 +1,6 @@
 import SimpleMath
-from SimpleMath import Point2D
-from SimpleMath import MyLine2D
+from SimpleMath import Vector2D
+from SimpleMath import Line2D
 from SimpleMath import perpendicular_bisector
 from SCE_Direct import find_constrained_centre_directly
 from test_reduced_circle import generate_random_points_list
@@ -10,6 +10,10 @@ from math import copysign
 from math import pi
 
 __author__ = 'lav'
+
+
+x_axis = Line2D(coefs=[0.0, 1.0, 0.0])
+y_axis = Line2D(coefs=[1.0, 0.0, 0.0])
 
 
 # critical value
@@ -24,7 +28,7 @@ def median_along_line(critical_points, line):
         v.append(line.direction_value_on_point(p))
     med_value = npmedian(array(v))
     codirect = line.direc
-    perp_line = MyLine2D(None, None,
+    perp_line = Line2D(None, None,
                          coefs=[codirect.get_x(), codirect.get_y(), med_value])
     result = perp_line.intersection(line)
     assert (result is not None)
@@ -135,35 +139,66 @@ def determine_enclosure_centre_side(points, line):
     return copysign(1, dist)
 
 
-def form_angle_to_pair_map(points):
+def make_pair_to_bisector_map(points):
     pairs = form_pairs(points)
-    lines = dict()
+    result = dict()
     for pair in pairs:
-        x_axis = MyLine2D(coefs=[0.0, 1.0, 0.0])
-        bisector = perpendicular_bisector(pair[0], pair[1])
-        angle = x_axis.angle(bisector)
-        if angle in lines:
+        result[pair] = perpendicular_bisector(pair[0], pair[1])
+    return result
+
+
+def make_angle_to_bisector_map(points):
+    bisectors = make_pair_to_bisector_map(points)
+    result = dict()
+    for b in bisectors.values():
+        angle = x_axis.angle(b)
+        if angle in result:
             assert False
-        lines[angle] = (pair, bisector)
-    return lines
+        result[angle] = b
+    return result
 
 
-def get_median_line(angle_to_pair_map):
-    med_angle = npmedian(array(angle_to_pair_map.keys()))
-    if len(angle_to_pair_map) % 2 == 1:
-        pair, bisector = angle_to_pair_map[med_angle]
+def get_median_bisector(angle_to_bisector_map):
+    med_angle = npmedian(array(angle_to_bisector_map.keys()))
+    if len(angle_to_bisector_map) % 2 == 1:
+        bisector = angle_to_bisector_map[med_angle]
         return bisector
     else:
-        angle_below = max([a for a in angle_to_pair_map.keys() if a < med_angle])
-        angle_above = min([a for a in angle_to_pair_map.keys() if a > med_angle])
-        pair, line_below = angle_to_pair_map[angle_below]
-        pair, line_above = angle_to_pair_map[angle_above]
+        angle_below = max([a for a in angle_to_bisector_map.keys() if a < med_angle])
+        angle_above = min([a for a in angle_to_bisector_map.keys() if a > med_angle])
+        line_below = angle_to_bisector_map[angle_below]
+        line_above = angle_to_bisector_map[angle_above]
+
         def invert_if_x_less_zero(vector):
             return vector.inverted() if vector.get_x() < 0.0 else vector
         direction_below = invert_if_x_less_zero(line_below.direc.normalized())
         direction_above = invert_if_x_less_zero(line_above.direc.normalized())
         med_line_direction = direction_above.sum(direction_below)
-        zero_point = Point2D(0.0, 0.0)
-        return MyLine2D(point1=zero_point, point2=med_line_direction)
+        return Line2D(point1=Vector2D(0.0, 0.0), point2=med_line_direction)
 
 
+def form_lines_pairs(points):
+    angle_to_bisector = make_angle_to_bisector_map(points)
+    med_bisector = get_median_bisector(angle_to_bisector)
+    med_angle = x_axis.angle(med_bisector)
+    angles_below = [a for a in angle_to_bisector.keys() if a <= med_angle]
+    angles_above = [a for a in angle_to_bisector.keys() if a >= med_angle]
+    assert len(angles_above) == len(angles_below)
+    lines_pairs = list()
+    for i in range(len(angles_below)):
+        bisector_below = angle_to_bisector[angles_below[i]]
+        bisector_above = angle_to_bisector[angles_above[i]]
+        lines_pairs.append([bisector_below, bisector_above])
+    return lines_pairs
+
+
+def form_pairs_intersections_values(lines_pairs, base_axis=y_axis):
+    values = list()
+    for pair in lines_pairs:
+        intersection = pair[0].intersection(pair[1])
+        if intersection is None:
+            line0_value = base_axis.intersection(pair[0]).get_y()
+            line1_value = base_axis.intersection(pair[1]).get_y()
+            values.append(0.5 * (line0_value + line1_value))
+        else:
+            values.append(intersection.get_y())

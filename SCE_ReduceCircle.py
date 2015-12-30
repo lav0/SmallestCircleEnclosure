@@ -1,7 +1,7 @@
 from __builtin__ import isinstance
-from SimpleMath import Point2D
+from SimpleMath import Vector2D
 from SimpleMath import MyCircle
-from SimpleMath import MyLine2D
+from SimpleMath import Line2D
 from SimpleMath import get_vertex_with_obtuse_angle
 from SimpleMath import perpendicular_bisector
 from TimeMeasureDecorator import time_measure_decorator
@@ -16,7 +16,7 @@ def reduced_circle_new(point1, point2, line):
 
 def find_gravity_centre(a_list_of_points):
     inv_number_of_elements = 1.0 / len(a_list_of_points)
-    return Point2D(inv_number_of_elements * sum(p.get_x() for p in a_list_of_points),
+    return Vector2D(inv_number_of_elements * sum(p.get_x() for p in a_list_of_points),
                    inv_number_of_elements * sum(p.get_y() for p in a_list_of_points))
 
 
@@ -32,7 +32,7 @@ def find_smallest_circle_sqtime(a_list_of_points):
     anchor_point = farther_point
     for p in a_list_of_points:
         if p is not farther_point:
-            circle = reduced_circle_new(farther_point, p, MyLine2D(smallest_circle.centre, farther_point))
+            circle = reduced_circle_new(farther_point, p, Line2D(smallest_circle.centre, farther_point))
             if anchor_radius < circle.radius:
                 anchor_radius = circle.radius
                 anchor_point = p
@@ -63,9 +63,9 @@ def find_smallest_circle_sqtime(a_list_of_points):
                     if obtuse_point is p:
                         continue
 
-                    line_ab = MyLine2D(a, b)
+                    line_ab = Line2D(a, b)
                     mid = line_ab.middle_point()
-                    line_along = MyLine2D(mid, mid.sum(line_ab.orthogonal_vector()))
+                    line_along = Line2D(mid, mid.sum(line_ab.orthogonal_vector()))
                     circle = reduced_circle_new(a, p, line_along)
                     if final_radius < circle.radius < smallest_circle.radius:
                         final_radius = circle.radius

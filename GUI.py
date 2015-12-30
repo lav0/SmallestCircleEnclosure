@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from SimpleMath import Point2D
+from SimpleMath import Vector2D
 from SCE_Direct import find_smallest_circle_directly
 from SCE_ReduceCircle import find_smallest_circle_sqtime
 
@@ -35,7 +35,7 @@ def button_press_callback(event):
             plt.gcf().gca().add_artist(circle2)
 
     else:
-        list_of_points.append(Point2D(event.xdata, event.ydata))
+        list_of_points.append(Vector2D(event.xdata, event.ydata))
         drawable_point = plt.Line2D((event.xdata, event.xdata), (event.ydata, event.ydata), marker='o', color='r')
         plt.gcf().gca().add_artist(drawable_point)
 
