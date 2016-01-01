@@ -6,7 +6,7 @@ epsilon = 1e-6
 SM_ZERO = 1e-12
 
 
-class Vector2D():
+class Vector2D:
     def __init__(self, x, y):
         self.m_x, self.m_y = x, y
 
@@ -62,7 +62,7 @@ class Vector2D():
         return hash(self.m_x) ^ hash(self.m_y)
 
 
-class MyCircle():
+class MyCircle:
     def __init__(self, p, r=1.0):
         self.centre, self.radius = p, r
 
@@ -110,7 +110,7 @@ def construct_circle_on_triple(p1, p2, p3):
         return MyCircle(point, radius)
 
 
-class Line2D():
+class Line2D:
     def __init__(self, point1=None, point2=None, coefs=None):
         if coefs is None:
             assert point1 is not None

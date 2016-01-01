@@ -181,14 +181,16 @@ def form_lines_pairs(points):
     angle_to_bisector = make_angle_to_bisector_map(points)
     med_bisector = get_median_bisector(angle_to_bisector)
     med_angle = x_axis.angle(med_bisector)
-    angles_below = [a for a in angle_to_bisector.keys() if a <= med_angle]
-    angles_above = [a for a in angle_to_bisector.keys() if a >= med_angle]
+    angles_below = [a for a in angle_to_bisector.keys() if a < med_angle]
+    angles_above = [a for a in angle_to_bisector.keys() if a > med_angle]
     assert len(angles_above) == len(angles_below)
     lines_pairs = list()
     for i in range(len(angles_below)):
         bisector_below = angle_to_bisector[angles_below[i]]
         bisector_above = angle_to_bisector[angles_above[i]]
         lines_pairs.append([bisector_below, bisector_above])
+    if med_bisector in angle_to_bisector.values():
+        lines_pairs.append([med_bisector, med_bisector])
     return lines_pairs
 
 
@@ -202,3 +204,4 @@ def form_pairs_intersections_values(lines_pairs, base_axis=y_axis):
             values.append(0.5 * (line0_value + line1_value))
         else:
             values.append(intersection.get_y())
+    return values

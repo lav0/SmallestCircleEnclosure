@@ -7,6 +7,7 @@ from SCE_Nimrod import make_angle_to_bisector_map
 from SCE_Nimrod import get_median_bisector
 from SCE_Nimrod import form_lines_pairs
 from SCE_Nimrod import form_pairs_intersections_values
+from SCE_Nimrod import form_pairs
 from SCE_Direct import find_smallest_circle_directly
 from math import copysign
 from math import pi
@@ -103,6 +104,11 @@ class TestDetermine_enclosure_centre_side(TestCase):
 
     def internal_test_form_lines(self, p):
         lines_pairs = form_lines_pairs(p)
+        number_of_bisectors = len(form_pairs(p))
+        if number_of_bisectors % 2 == 0:
+            self.assertEqual(number_of_bisectors / 2, len(lines_pairs))
+        else:
+            self.assertEqual(number_of_bisectors / 2 + 1, len(lines_pairs))
         x_axis = Line2D(coefs=[0.0, 1.0, 0.0])
         median_bisector = get_median_bisector(make_angle_to_bisector_map(p))
         median_angle = x_axis.angle(median_bisector)
@@ -119,7 +125,7 @@ class TestDetermine_enclosure_centre_side(TestCase):
             self.internal_test_form_lines(generate_random_points_list(i, 30.0))
 
     @function_call_log_decorator
-    def test_form_pairs_intersections_values(self):
+    def test_form_pairs_intersections_values_simple(self):
         p = [Vector2D(-2.0, 2.0),
              Vector2D(-1.0, 1.0),
              Vector2D(2.0, 0.0),
@@ -127,6 +133,6 @@ class TestDetermine_enclosure_centre_side(TestCase):
              Vector2D(4.0, -1.0),
              Vector2D(3.0, -2.0)]
         lines_pairs = form_lines_pairs(p)
-        print len(lines_pairs)
-        form_pairs_intersections_values(lines_pairs)
-        self.assertTrue(True)
+        ys = form_pairs_intersections_values(lines_pairs)
+        self.assertTrue(1.0 in ys)
+        self.assertTrue(2.5 in ys)
