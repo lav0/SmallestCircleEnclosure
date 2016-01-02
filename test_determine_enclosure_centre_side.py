@@ -8,6 +8,8 @@ from SCE_Nimrod import get_median_bisector
 from SCE_Nimrod import form_lines_pairs
 from SCE_Nimrod import form_pairs_intersections_values
 from SCE_Nimrod import form_pairs
+from SCE_Nimrod import get_y_separation_line
+from SCE_Nimrod import make_bisector_to_pair_map
 from SCE_Direct import find_smallest_circle_directly
 from math import copysign
 from math import pi
@@ -68,12 +70,12 @@ class TestDetermine_enclosure_centre_side(TestCase):
         half_pi = pi * 0.5
         for i in range(100):
             p = generate_random_points_list(10, 20.0)
-            angle_to_bisector_map = make_angle_to_bisector_map(p)
+            angle_to_bisector_map = make_angle_to_bisector_map(make_bisector_to_pair_map(p))
             for k in angle_to_bisector_map.keys():
                 self.assertTrue(abs(k) <= half_pi)
 
     @function_call_log_decorator
-    def test_get_median_line_small_even(self):
+    def test_get_median_line_small_odd(self):
         p = [Vector2D(-2.0, 2.0),
              Vector2D(-1.0, 1.0),
              Vector2D(2.0, 0.0),
@@ -81,13 +83,13 @@ class TestDetermine_enclosure_centre_side(TestCase):
              Vector2D(4.0, -1.0),
              Vector2D(3.0, -2.0)]
 
-        bisector = get_median_bisector(make_angle_to_bisector_map(p))
+        bisector = get_median_bisector(make_angle_to_bisector_map(make_bisector_to_pair_map(p)))
         b = perpendicular_bisector(p[2], p[3])
         self.assertTrue(bisector.is_parallel(b))
         self.assertTrue(bisector.is_parallel(Line2D(coefs=[0.0, 1.0, 0.0])))
 
     @function_call_log_decorator
-    def test_get_median_line_small_odd(self):
+    def test_get_median_line_small_even(self):
         p = [Vector2D(-2.0, 2.0),
              Vector2D(-1.0, 1.0),
              Vector2D(2.0, 0.0),
@@ -97,20 +99,22 @@ class TestDetermine_enclosure_centre_side(TestCase):
              Vector2D(-1.0, -3.0),
              Vector2D(1.0, -2.0)]
 
-        bisector = get_median_bisector(make_angle_to_bisector_map(p))
+        bisector = get_median_bisector(make_angle_to_bisector_map(make_bisector_to_pair_map(p)))
         x_line = Line2D(coefs=[0.0, 1.0, 0.0])
         angle = bisector.angle(x_line)
         self.assertEqual(angle, radians(45.0 * 0.5))
 
     def internal_test_form_lines(self, p):
-        lines_pairs = form_lines_pairs(p)
+        angle_to_bisector = make_angle_to_bisector_map(make_bisector_to_pair_map(p))
+        med_bisector = get_median_bisector(angle_to_bisector)
+        lines_pairs = form_lines_pairs(angle_to_bisector, med_bisector)
         number_of_bisectors = len(form_pairs(p))
         if number_of_bisectors % 2 == 0:
             self.assertEqual(number_of_bisectors / 2, len(lines_pairs))
         else:
             self.assertEqual(number_of_bisectors / 2 + 1, len(lines_pairs))
         x_axis = Line2D(coefs=[0.0, 1.0, 0.0])
-        median_bisector = get_median_bisector(make_angle_to_bisector_map(p))
+        median_bisector = get_median_bisector(make_angle_to_bisector_map(make_bisector_to_pair_map(p)))
         median_angle = x_axis.angle(median_bisector)
         for pair in lines_pairs:
             angle_below = x_axis.angle(pair[0])
@@ -126,13 +130,23 @@ class TestDetermine_enclosure_centre_side(TestCase):
 
     @function_call_log_decorator
     def test_form_pairs_intersections_values_simple(self):
-        p = [Vector2D(-2.0, 2.0),
-             Vector2D(-1.0, 1.0),
-             Vector2D(2.0, 0.0),
+        p = [Vector2D(2.0, 0.0),
              Vector2D(2.0, 2.0),
              Vector2D(4.0, -1.0),
-             Vector2D(3.0, -2.0)]
-        lines_pairs = form_lines_pairs(p)
+             Vector2D(3.0, -2.0),
+             Vector2D(-2.0, 2.0),
+             Vector2D(-1.0, 1.0)]
+        angle_to_bisector = make_angle_to_bisector_map(make_bisector_to_pair_map(p))
+        med_bisector = get_median_bisector(angle_to_bisector)
+        lines_pairs = form_lines_pairs(angle_to_bisector, med_bisector)
         ys = form_pairs_intersections_values(lines_pairs)
         self.assertTrue(1.0 in ys)
         self.assertTrue(2.5 in ys)
+
+    def test_get_y_separation_line(self):
+        bisector = Line2D(point1=Vector2D(0.0, 0.0), point2=Vector2D(2.0, 1.0))
+        separation_line = get_y_separation_line(bisector, 3)
+        y_axis_intersection = separation_line.intersection(Line2D(coefs=[1.0, 0.0, 0.0]))
+        self.assertTrue(separation_line.is_parallel(bisector))
+        self.assertEqual(y_axis_intersection.get_x(), 0.0)
+        self.assertEqual(y_axis_intersection.get_y(), 3.0)

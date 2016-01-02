@@ -1,6 +1,7 @@
 from math import sqrt
 from math import copysign
 from math import atan2
+from math import pi
 
 epsilon = 1e-6
 SM_ZERO = 1e-12
@@ -47,13 +48,16 @@ class Vector2D:
         return copy
 
     def is_collinear(self, other):
-        return self.scal(other) < SM_ZERO
+        return abs(self.vect_norm(other)) < SM_ZERO
 
     def get_x(self):
         return self.m_x
 
     def get_y(self):
         return self.m_y
+
+    def get_both(self):
+        return {'x': self.m_x, 'y': self.m_y}
 
     def __eq__(self, other):
         return self.sub(other).norm() < epsilon
@@ -160,13 +164,19 @@ class Line2D:
         return abs(a * point.get_x() + b * point.get_y() - c) < SM_ZERO
 
     def is_parallel(self, line):
-        return self.direc.is_collinear(line.orthogonal_vector())
+        return self.direc.is_collinear(line.direc)
 
     def distance_to_point(self, point):
         a, b, c = self.coefs()
         sign = copysign(1, c)
         lam = sign / sqrt(a**2 + b**2)
         return lam * (a * point.get_x() + b * point.get_y() - c)
+
+    def define_point_side(self, point):
+        dist = self.distance_to_point(point)
+        if abs(dist) < SM_ZERO:
+            return 0
+        return copysign(1, dist)
 
     def angle(self, line):
         v1 = self.direc
@@ -175,7 +185,8 @@ class Line2D:
         if scal < 0:
             v2 = v2.inverted()
             scal = v1.scal(v2)
-        return atan2(v1.vect_norm(v2), scal)
+        result = atan2(v1.vect_norm(v2), scal)
+        return result
 
 
 def point_to_line_projection(point, line):

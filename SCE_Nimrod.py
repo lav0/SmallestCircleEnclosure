@@ -6,7 +6,6 @@ from SCE_Direct import find_constrained_centre_directly
 from test_reduced_circle import generate_random_points_list
 from numpy import median as npmedian
 from numpy import array
-from math import copysign
 from math import pi
 
 __author__ = 'lav'
@@ -72,13 +71,11 @@ def reject_constrained_redundant_points(lst, line):
     for pair in pairs:
         intersection = pair_bisector_and_line_intersection(pair[0], pair[1], line)
         if intersection is None:
-            if abs(line.distance_to_point(pair[0])) < abs(line.distance_to_point(pair[1])):
-                rejected_points.append(pair[0])
-            else:
-                rejected_points.append(pair[1])
-            continue
-        critical_points.append(intersection)
-        critpnt_to_pair_map[intersection] = pair
+            closest = min(pair, key=lambda p: abs(line.distance_to_point(p)))
+            rejected_points.append(closest)
+        else:
+            critical_points.append(intersection)
+            critpnt_to_pair_map[intersection] = pair
 
     #
     # for now we just handle a single point situation which is the most common
@@ -134,23 +131,21 @@ def determine_enclosure_centre_side(points, line):
     print "Number of points before direct search: ", len(cpoints)
     circle, pivots = find_constrained_centre_directly(cpoints, line)
     middle = pivots[0].sum(pivots[-1]).multiply(0.5)
-    dist = line.distance_to_point(middle)
-
-    return copysign(1, dist)
+    return line.define_point_side(middle)
 
 
-def make_pair_to_bisector_map(points):
+def make_bisector_to_pair_map(points):
     pairs = form_pairs(points)
     result = dict()
     for pair in pairs:
-        result[pair] = perpendicular_bisector(pair[0], pair[1])
+        bisector = perpendicular_bisector(pair[0], pair[1])
+        result[bisector] = pair
     return result
 
 
-def make_angle_to_bisector_map(points):
-    bisectors = make_pair_to_bisector_map(points)
+def make_angle_to_bisector_map(bisector_to_pair_map):
     result = dict()
-    for b in bisectors.values():
+    for b in bisector_to_pair_map.keys():
         angle = x_axis.angle(b)
         if angle in result:
             assert False
@@ -159,6 +154,10 @@ def make_angle_to_bisector_map(points):
 
 
 def get_median_bisector(angle_to_bisector_map):
+    """
+    :type angle_to_bisector_map: dict
+    :rtype : Line2D
+    """
     med_angle = npmedian(array(angle_to_bisector_map.keys()))
     if len(angle_to_bisector_map) % 2 == 1:
         bisector = angle_to_bisector_map[med_angle]
@@ -177,19 +176,17 @@ def get_median_bisector(angle_to_bisector_map):
         return Line2D(point1=Vector2D(0.0, 0.0), point2=med_line_direction)
 
 
-def form_lines_pairs(points):
-    angle_to_bisector = make_angle_to_bisector_map(points)
-    med_bisector = get_median_bisector(angle_to_bisector)
+def form_lines_pairs(angle_to_bisector_map, med_bisector):
     med_angle = x_axis.angle(med_bisector)
-    angles_below = [a for a in angle_to_bisector.keys() if a < med_angle]
-    angles_above = [a for a in angle_to_bisector.keys() if a > med_angle]
+    angles_below = [a for a in angle_to_bisector_map.keys() if a < med_angle]
+    angles_above = [a for a in angle_to_bisector_map.keys() if a > med_angle]
     assert len(angles_above) == len(angles_below)
     lines_pairs = list()
     for i in range(len(angles_below)):
-        bisector_below = angle_to_bisector[angles_below[i]]
-        bisector_above = angle_to_bisector[angles_above[i]]
+        bisector_below = angle_to_bisector_map[angles_below[i]]
+        bisector_above = angle_to_bisector_map[angles_above[i]]
         lines_pairs.append([bisector_below, bisector_above])
-    if med_bisector in angle_to_bisector.values():
+    if med_bisector in angle_to_bisector_map.values():
         lines_pairs.append([med_bisector, med_bisector])
     return lines_pairs
 
@@ -205,3 +202,88 @@ def form_pairs_intersections_values(lines_pairs, base_axis=y_axis):
         else:
             values.append(intersection.get_y())
     return values
+
+
+def get_y_separation_line(median_bisector, y_med):
+    return Line2D(
+        Vector2D(0.0, y_med),
+        Vector2D(0.0, y_med).sum(median_bisector.direc)
+    )
+
+
+def define_cardinal_direction(y_separation_line, side, step_direction):
+    point_south = y_separation_line.first.sum(step_direction)
+    side_below = y_separation_line.define_point_side(point_south)
+
+    if step_direction.is_collinear(y_axis.direc):
+        ret_values = ["SOUTH", "NORTH"]
+    else:
+        ret_values = ["WEST", "EAST"]
+
+    if side_below * side > 0:
+        return ret_values[0]
+    elif side_below * side < 0:
+        return ret_values[1]
+
+    # given arg 'side' seems to be zero
+    print side, side_below
+    assert False
+
+
+def tmp_name(points):
+    bisector_to_pair = make_bisector_to_pair_map(points)
+    angle_to_bisector = make_angle_to_bisector_map(bisector_to_pair)
+    median_bisector = get_median_bisector(angle_to_bisector)
+    lines_pairs = form_lines_pairs(angle_to_bisector, median_bisector)
+    ys_critical = form_pairs_intersections_values(lines_pairs)
+    y_med = npmedian(array(ys_critical))
+    y_separation_line = get_y_separation_line(median_bisector, y_med)
+    aim_centre_y_side = determine_enclosure_centre_side(points, y_separation_line)
+    critical_points = dict()
+    for lines_pair in lines_pairs:
+        intersection = lines_pair[0].intersection(lines_pair[1])
+        if intersection is None:
+            continue
+        side = y_separation_line.define_point_side(intersection)
+        if side * aim_centre_y_side <= 0:
+            critical_points[intersection] = lines_pair
+    xs_critical = [p.get_x() for p in critical_points]
+    x_med = npmedian(array(xs_critical))
+    x_separation_line = Line2D(point1=Vector2D(x_med, 0.0), point2=Vector2D(x_med, 1.0))
+    aim_centre_x_side = determine_enclosure_centre_side(points, x_separation_line)
+    crucial_lines_pairs = list()
+    for p in critical_points.keys():
+        side = x_separation_line.define_point_side(p)
+        if side * aim_centre_x_side <= 0:
+            crucial_lines_pairs.append(critical_points[p])
+
+    south_north = define_cardinal_direction(y_separation_line, aim_centre_y_side, Vector2D(0.0, -1.0))
+    east_west = define_cardinal_direction(x_separation_line, aim_centre_x_side, Vector2D(-1.0, 0.0))
+    print south_north, east_west
+    critical_lines = list()
+    for lines_pair in crucial_lines_pairs:
+        line0 = lines_pair[0]
+        line1 = lines_pair[1]
+        north = south_north == "NORTH"
+        west = east_west == "WEST"
+        if (north and west) or (not north and not west):
+            angle0 = median_bisector.angle(line0)
+            angle1 = median_bisector.angle(line1)
+            assert angle0 * angle1 < 0
+            if angle0 > 0:
+                critical_lines.append(line0)
+            else:
+                critical_lines.append(line1)
+    return critical_lines
+
+
+
+p = [Vector2D(2.0, 0.0),
+     Vector2D(2.0, 2.0),
+     Vector2D(4.0, -1.0),
+     Vector2D(3.0, -2.0),
+     Vector2D(-2.0, 2.0),
+     Vector2D(-1.0, 1.0)]
+
+print [line.direc.get_both() for line in tmp_name(p)]
+
