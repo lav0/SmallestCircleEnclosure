@@ -2,7 +2,7 @@ from unittest import TestCase
 from SimpleMath import Vector2D
 from SimpleMath import Line2D
 from SCE_Direct import find_constrained_centre_directly
-from SCE_Nimrod import reject_constrained_redundant_points
+from SCE_Nimrod import find_constrained_redundant_points
 from random import uniform
 
 __author__ = 'lav'
@@ -19,7 +19,7 @@ class TestReject_redundant_points(TestCase):
                Vector2D(0.5, -1.0),
                Vector2D(0.5, 1.5)]
 
-        rejected = reject_constrained_redundant_points(ppp, line)
+        rejected = find_constrained_redundant_points(ppp, line)
 
         self.assertEqual(len(rejected), 2)
 
@@ -30,7 +30,7 @@ class TestReject_redundant_points(TestCase):
             if p in rejected:
                 ppp.remove(p)
 
-        rejected = reject_constrained_redundant_points(ppp, line)
+        rejected = find_constrained_redundant_points(ppp, line)
 
         self.assertEqual(len(rejected), 1)
 
@@ -40,7 +40,7 @@ class TestReject_redundant_points(TestCase):
             if p in rejected:
                 ppp.remove(p)
 
-        rejected = reject_constrained_redundant_points(ppp, line)
+        rejected = find_constrained_redundant_points(ppp, line)
 
         self.assertEqual(len(rejected), 1)
 
@@ -50,7 +50,7 @@ class TestReject_redundant_points(TestCase):
         circle, points = find_constrained_centre_directly(lst, line)
 
         while len(lst) > 3:
-            rejected = reject_constrained_redundant_points(lst, line)
+            rejected = find_constrained_redundant_points(lst, line)
             if not rejected:
                 chk1 = len(lst)
                 last = lst[-1]
@@ -58,7 +58,7 @@ class TestReject_redundant_points(TestCase):
                 lst.insert(0, last)
                 chk2 = len(lst)
                 assert chk1 == chk2
-                rejected = reject_constrained_redundant_points(lst, line)
+                rejected = find_constrained_redundant_points(lst, line)
                 if not rejected:
                     print "bad bad bad"
 

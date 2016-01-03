@@ -19,7 +19,15 @@ from TimeMeasureDecorator import function_call_log_decorator
 import readwrite_list
 
 __author__ = 'Andrey'
-#perrin
+
+
+def get_default_points():
+    return [Vector2D(2.0, 0.0),
+            Vector2D(2.0, 2.0),
+            Vector2D(4.0, -1.0),
+            Vector2D(3.0, -2.0),
+            Vector2D(-2.0, 2.0),
+            Vector2D(-1.0, 1.0)]
 
 
 class TestDetermine_enclosure_centre_side(TestCase):
@@ -76,15 +84,9 @@ class TestDetermine_enclosure_centre_side(TestCase):
 
     @function_call_log_decorator
     def test_get_median_line_small_odd(self):
-        p = [Vector2D(-2.0, 2.0),
-             Vector2D(-1.0, 1.0),
-             Vector2D(2.0, 0.0),
-             Vector2D(2.0, 2.0),
-             Vector2D(4.0, -1.0),
-             Vector2D(3.0, -2.0)]
-
+        p = get_default_points()
         bisector = get_median_bisector(make_angle_to_bisector_map(make_bisector_to_pair_map(p)))
-        b = perpendicular_bisector(p[2], p[3])
+        b = perpendicular_bisector(p[0], p[1])
         self.assertTrue(bisector.is_parallel(b))
         self.assertTrue(bisector.is_parallel(Line2D(coefs=[0.0, 1.0, 0.0])))
 
@@ -128,20 +130,62 @@ class TestDetermine_enclosure_centre_side(TestCase):
             self.internal_test_form_lines(generate_random_points_list(i, 20.0))
             self.internal_test_form_lines(generate_random_points_list(i, 30.0))
 
-    @function_call_log_decorator
-    def test_form_pairs_intersections_values_simple(self):
-        p = [Vector2D(2.0, 0.0),
-             Vector2D(2.0, 2.0),
-             Vector2D(4.0, -1.0),
-             Vector2D(3.0, -2.0),
-             Vector2D(-2.0, 2.0),
-             Vector2D(-1.0, 1.0)]
+    def internal_test_form_pairs_intersections_values(self, p, expected):
         angle_to_bisector = make_angle_to_bisector_map(make_bisector_to_pair_map(p))
         med_bisector = get_median_bisector(angle_to_bisector)
         lines_pairs = form_lines_pairs(angle_to_bisector, med_bisector)
         ys = form_pairs_intersections_values(lines_pairs)
-        self.assertTrue(1.0 in ys)
-        self.assertTrue(2.5 in ys)
+        for e in expected:
+            self.assertTrue(e in ys)
+
+    def check_maps_equality(self, map1, map2):
+        if len(map1) != len(map2):
+            return False
+
+        def check_one(m1, m2):
+            for key in m1.keys():
+                if key not in m2.keys():
+                    return False
+                if m1[key] != m2[key]:
+                    return False
+        return check_one(map1, map2) and check_one(map2, map1)
+
+    def internal_test_stability(self, function, args):
+        exp_len = len(args)
+        exp_res = function(args)
+        for i in range(1):
+            self.assertEqual(exp_len, len(args))
+            check_res = function(args)
+            if not self.check_maps_equality(exp_res, check_res):
+                print [p.direc.get_both() for p in exp_res]
+                print [p.direc.get_both() for p in check_res]
+                self.assertTrue(False)
+        return exp_res
+
+    def internal_test_form_pairs_intersections_values_stability(self, points):
+        bisector_to_pair = self.internal_test_stability(make_bisector_to_pair_map, points)
+        # angle_to_bisector = self.internal_test_stability(make_angle_to_bisector_map, bisector_to_pair)
+        # med_bisector = get_median_bisector(angle_to_bisector)
+        # lines_pairs = form_lines_pairs(angle_to_bisector, med_bisector)
+        # ys = form_pairs_intersections_values(lines_pairs)
+
+    @function_call_log_decorator
+    def test_form_pairs_intersections_values_simple(self):
+        p = get_default_points()
+        exp = [1.0, 2.5]
+        self.internal_test_form_pairs_intersections_values(p, exp)
+        #self.internal_test_form_pairs_intersections_values_stability(p)
+
+    @function_call_log_decorator
+    def test_form_pairs_intersections_values_from_file(self):
+        p = readwrite_list.read_list_of_points("TestDetermineSide20.txt")
+        #self.internal_test_form_pairs_intersections_values_stability(p)
+        exp = [1.7433726006528731,
+               -0.15965496338328003,
+               2.1813704343625773,
+               3.6302737863622667,
+               1.6106757565318828]
+        self.internal_test_form_pairs_intersections_values(p, exp)
 
     def test_get_y_separation_line(self):
         bisector = Line2D(point1=Vector2D(0.0, 0.0), point2=Vector2D(2.0, 1.0))

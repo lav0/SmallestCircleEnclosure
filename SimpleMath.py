@@ -178,6 +178,9 @@ class Line2D:
             return 0
         return copysign(1, dist)
 
+    def are_points_on_same_side(self, point1, point2):
+        return self.define_point_side(point1) * self.define_point_side(point2) > 0
+
     def angle(self, line):
         v1 = self.direc
         v2 = line.direc

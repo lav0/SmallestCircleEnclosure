@@ -63,7 +63,7 @@ def is_constrained_pointer_centre_found(median, farthest):
     return abs(farthest - median) < SimpleMath.SM_ZERO
 
 
-def reject_constrained_redundant_points(lst, line):
+def find_constrained_redundant_points(lst, line):
     pairs = form_pairs(lst)
     critical_points = list()
     critpnt_to_pair_map = dict()
@@ -112,7 +112,7 @@ def reject_constrained_redundant_points(lst, line):
 def determine_enclosure_centre_side(points, line):
     cpoints = list(points)
     while len(cpoints) > 3:
-        rejected = reject_constrained_redundant_points(cpoints, line)
+        rejected = find_constrained_redundant_points(cpoints, line)
         if not rejected:
             chk1 = len(cpoints)
             last = cpoints[-1]
@@ -120,7 +120,7 @@ def determine_enclosure_centre_side(points, line):
             cpoints.insert(0, last)
             chk2 = len(cpoints)
             assert chk1 == chk2
-            rejected = reject_constrained_redundant_points(cpoints, line)
+            rejected = find_constrained_redundant_points(cpoints, line)
             if not rejected:
                 assert False
 
@@ -230,7 +230,7 @@ def define_cardinal_direction(y_separation_line, side, step_direction):
     assert False
 
 
-def tmp_name(points):
+def find_redundant_points(points):
     bisector_to_pair = make_bisector_to_pair_map(points)
     angle_to_bisector = make_angle_to_bisector_map(bisector_to_pair)
     median_bisector = get_median_bisector(angle_to_bisector)
@@ -259,7 +259,6 @@ def tmp_name(points):
 
     south_north = define_cardinal_direction(y_separation_line, aim_centre_y_side, Vector2D(0.0, -1.0))
     east_west = define_cardinal_direction(x_separation_line, aim_centre_x_side, Vector2D(-1.0, 0.0))
-    print south_north, east_west
     critical_lines = list()
     for lines_pair in crucial_lines_pairs:
         line0 = lines_pair[0]
@@ -274,16 +273,24 @@ def tmp_name(points):
                 critical_lines.append(line0)
             else:
                 critical_lines.append(line1)
-    return critical_lines
+        else:
+            angle0 = median_bisector.angle(line0)
+            angle1 = median_bisector.angle(line1)
+            assert angle0 * angle1 < 0
+            if angle0 < 0:
+                critical_lines.append(line0)
+            else:
+                critical_lines.append(line1)
 
+    rejected_points = list()
+    for line in critical_lines:
+        point1, point2 = bisector_to_pair[line]
+        med_point = Vector2D(x_med, y_med)
+        if line.are_points_on_same_side(point1, med_point):
+            rejected_points.append(point1)
+        elif line.are_points_on_same_side(point2, med_point):
+            rejected_points.append(point2)
+        else:
+            assert True
 
-
-p = [Vector2D(2.0, 0.0),
-     Vector2D(2.0, 2.0),
-     Vector2D(4.0, -1.0),
-     Vector2D(3.0, -2.0),
-     Vector2D(-2.0, 2.0),
-     Vector2D(-1.0, 1.0)]
-
-print [line.direc.get_both() for line in tmp_name(p)]
-
+    return rejected_points
