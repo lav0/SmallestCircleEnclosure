@@ -30,6 +30,10 @@ def get_default_points():
             Vector2D(-1.0, 1.0)]
 
 
+def get_extra_default_points():
+    return get_default_points() + [Vector2D(-1.0, -3.0), Vector2D(1.0, -2.0)]
+
+
 class TestDetermine_enclosure_centre_side(TestCase):
 
     def internal_test_the_list(self, lst, line=Line2D(coefs=[0.0, 1.0, 0.0])):
@@ -92,15 +96,7 @@ class TestDetermine_enclosure_centre_side(TestCase):
 
     @function_call_log_decorator
     def test_get_median_line_small_even(self):
-        p = [Vector2D(-2.0, 2.0),
-             Vector2D(-1.0, 1.0),
-             Vector2D(2.0, 0.0),
-             Vector2D(2.0, 2.0),
-             Vector2D(4.0, -1.0),
-             Vector2D(3.0, -2.0),
-             Vector2D(-1.0, -3.0),
-             Vector2D(1.0, -2.0)]
-
+        p = get_extra_default_points()
         bisector = get_median_bisector(make_angle_to_bisector_map(make_bisector_to_pair_map(p)))
         x_line = Line2D(coefs=[0.0, 1.0, 0.0])
         angle = bisector.angle(x_line)

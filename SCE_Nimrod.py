@@ -182,12 +182,19 @@ def form_lines_pairs(angle_to_bisector_map, med_bisector):
     angles_above = [a for a in angle_to_bisector_map.keys() if a > med_angle]
     assert len(angles_above) == len(angles_below)
     lines_pairs = list()
+    if med_bisector in angle_to_bisector_map.values():
+        angle_below = angles_below[-1]
+        angle_above = angles_above[-1]
+        bisector_below = angle_to_bisector_map[angle_below]
+        bisector_above = angle_to_bisector_map[angle_above]
+        lines_pairs.append([med_bisector, bisector_below])
+        lines_pairs.append([med_bisector, bisector_above])
+        angles_above.remove(angle_above)
+        angles_below.remove(angle_below)
     for i in range(len(angles_below)):
         bisector_below = angle_to_bisector_map[angles_below[i]]
         bisector_above = angle_to_bisector_map[angles_above[i]]
         lines_pairs.append([bisector_below, bisector_above])
-    if med_bisector in angle_to_bisector_map.values():
-        lines_pairs.append([med_bisector, med_bisector])
     return lines_pairs
 
 
@@ -243,10 +250,12 @@ def find_redundant_points(points):
     for lines_pair in lines_pairs:
         intersection = lines_pair[0].intersection(lines_pair[1])
         if intersection is None:
-            continue
+            continue #intersection = 0.5 * (lines_pair[0] + lines_pair[1])
         side = y_separation_line.define_point_side(intersection)
         if side * aim_centre_y_side <= 0:
             critical_points[intersection] = lines_pair
+    if not critical_points:
+        return []
     xs_critical = [p.get_x() for p in critical_points]
     x_med = npmedian(array(xs_critical))
     x_separation_line = Line2D(point1=Vector2D(x_med, 0.0), point2=Vector2D(x_med, 1.0))
@@ -256,7 +265,8 @@ def find_redundant_points(points):
         side = x_separation_line.define_point_side(p)
         if side * aim_centre_x_side <= 0:
             crucial_lines_pairs.append(critical_points[p])
-
+    if not crucial_lines_pairs:
+        return []
     south_north = define_cardinal_direction(y_separation_line, aim_centre_y_side, Vector2D(0.0, -1.0))
     east_west = define_cardinal_direction(x_separation_line, aim_centre_x_side, Vector2D(-1.0, 0.0))
     critical_lines = list()
@@ -268,19 +278,23 @@ def find_redundant_points(points):
         if (north and west) or (not north and not west):
             angle0 = median_bisector.angle(line0)
             angle1 = median_bisector.angle(line1)
-            assert angle0 * angle1 < 0
             if angle0 > 0:
                 critical_lines.append(line0)
-            else:
+            elif angle1 > 0:
                 critical_lines.append(line1)
+            else:
+                print angle0, angle1
+                assert False
         else:
             angle0 = median_bisector.angle(line0)
             angle1 = median_bisector.angle(line1)
-            assert angle0 * angle1 < 0
             if angle0 < 0:
                 critical_lines.append(line0)
-            else:
+            elif angle1 < 0:
                 critical_lines.append(line1)
+            else:
+                print angle0, angle1
+                assert False
 
     rejected_points = list()
     for line in critical_lines:

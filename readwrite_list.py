@@ -18,3 +18,15 @@ def read_list_of_points(filename):
             thelist.append(Vector2D(float(split[0]), float(split[1])))
     f.close()
     return thelist
+
+
+def round_points_in_file(filename, precision):
+    points = read_list_of_points(filename)
+    for i in range(len(points)):
+        p = points[i]
+        points[i] = Vector2D(round(p.get_x(), precision), round(p.get_y(), precision))
+    write_list_of_points(points, filename)
+
+
+round_points_in_file("Test0.txt", 1)
+
