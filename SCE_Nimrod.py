@@ -109,17 +109,21 @@ def find_constrained_redundant_points(lst, line):
     return rejected_points
 
 
+def scroll_points_list(cpoints):
+    chk1 = len(cpoints)
+    last = cpoints[-1]
+    cpoints.remove(last)
+    cpoints.insert(0, last)
+    chk2 = len(cpoints)
+    assert chk1 == chk2
+
+
 def determine_enclosure_centre_side(points, line):
     cpoints = list(points)
     while len(cpoints) > 3:
         rejected = find_constrained_redundant_points(cpoints, line)
         if not rejected:
-            chk1 = len(cpoints)
-            last = cpoints[-1]
-            cpoints.remove(last)
-            cpoints.insert(0, last)
-            chk2 = len(cpoints)
-            assert chk1 == chk2
+            scroll_points_list(cpoints)
             rejected = find_constrained_redundant_points(cpoints, line)
             if not rejected:
                 assert False
@@ -271,6 +275,9 @@ def find_redundant_points(points):
     aim_centre_y_side = determine_enclosure_centre_side(points, y_separation_line)
     crucial_points = find_crucial_points(intersection_to_lines_pair.keys(), y_separation_line, aim_centre_y_side)
 
+    if not crucial_points:
+        return []
+
     xs_critucal = [p.get_both()['x'] for p in crucial_points]
     x_med = npmedian(array(xs_critucal))
     x_separation_line = Line2D(point1=Vector2D(x_med, 0.0), point2=Vector2D(x_med, 1.0))
@@ -318,6 +325,7 @@ def find_redundant_points(points):
         elif side1 * comparison_side > 0:
             rejected_points.append(points[1])
         else:
+            print "x-med, y-med point side: ", comparison_side
             assert False
 
     return rejected_points

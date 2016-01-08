@@ -7,6 +7,7 @@ from SCE_Nimrod import make_angle_to_bisector_map
 from SCE_Nimrod import get_median_bisector
 from SCE_Nimrod import form_lines_pairs
 from SCE_Nimrod import find_crucial_points
+from SCE_Nimrod import scroll_points_list
 from test_determine_enclosure_centre_side import get_default_points
 from test_determine_enclosure_centre_side import get_extra_default_points
 from test_reduced_circle import generate_random_points_list
@@ -50,6 +51,35 @@ class MyTestCase(unittest.TestCase):
         rejected = find_redundant_points(points)
         self.assertEqual(1, len(rejected))
         self.assertEqual(SimpleMath.Vector2D(-1.0, 1.0), rejected[0])
+        points.remove(rejected[0])
+        a = find_redundant_points(points)
+        print [p.get_both() for p in a]
+
+    def internal_test_loop(self, points):
+        number_of_rejected = 1
+        while number_of_rejected > 0:
+            rejected = find_redundant_points(points)
+            if not rejected:
+                scroll_points_list(points)
+                rejected = find_redundant_points(points)
+            number_of_rejected = len(rejected)
+            for r in rejected:
+                if r not in points:
+                    filename = "TestRejectedNotInGiven.txt"
+                    readwrite_list.write_list_of_points(points, filename)
+                points.remove(r)
+        return len(points)
+
+    def test_special(self):
+        filename = "TestRejectedNotInGiven.txt"
+        points = readwrite_list.read_list_of_points(filename)
+        rejected = find_redundant_points(points)
+        for r in rejected:
+            if r not in points:
+                print "NOT HERE ", r.get_both()
+
+        print [p.get_both() for p in rejected]
+        print [p.get_both() for p in points if -7.6 < p.get_x() < -7.4]
 
     @function_call_log_decorator
     def test_default1(self):
@@ -57,6 +87,19 @@ class MyTestCase(unittest.TestCase):
         rejected = find_redundant_points(points)
         self.assertEqual(1, len(rejected))
         self.assertEqual(SimpleMath.Vector2D(-1.0, 1.0), rejected[0])
+
+    @function_call_log_decorator
+    def test_random(self):
+        for i in range(10):
+            points = generate_random_points_list(100, 40.0)
+            result_num = self.internal_test_loop(points)
+            self.assertTrue(result_num <= 16)
+
+    @function_call_log_decorator
+    def test_0(self):
+        points = readwrite_list.read_list_of_points("Test0.txt")
+        self.internal_test_loop(points)
+        print [p.get_both() for p in points]
 
     # @function_call_log_decorator
     # def test_something(self):
