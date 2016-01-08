@@ -148,6 +148,7 @@ def make_angle_to_bisector_map(bisector_to_pair_map):
     for b in bisector_to_pair_map.keys():
         angle = x_axis.angle(b)
         if angle in result:
+            # current not considering situation with two identical angles
             assert False
         result[angle] = b
     return result
@@ -187,14 +188,13 @@ def form_lines_pairs(angle_to_bisector_map, med_bisector):
         angle_above = angles_above[-1]
         bisector_below = angle_to_bisector_map[angle_below]
         bisector_above = angle_to_bisector_map[angle_above]
-        lines_pairs.append([med_bisector, bisector_below])
-        lines_pairs.append([med_bisector, bisector_above])
+        lines_pairs.append( (med_bisector, bisector_below) )
+        lines_pairs.append( (med_bisector, bisector_above) )
         angles_above.remove(angle_above)
         angles_below.remove(angle_below)
     for i in range(len(angles_below)):
-        bisector_below = angle_to_bisector_map[angles_below[i]]
-        bisector_above = angle_to_bisector_map[angles_above[i]]
-        lines_pairs.append([bisector_below, bisector_above])
+        t = angle_to_bisector_map[angles_below[i]], angle_to_bisector_map[angles_above[i]]
+        lines_pairs.append(t)
     return lines_pairs
 
 
@@ -209,6 +209,10 @@ def form_pairs_intersections_values(lines_pairs, base_axis=y_axis):
         else:
             values.append(intersection.get_y())
     return values
+
+
+def make_intersection_to_pair_map(lines_pairs):
+    return {pair[0].intersection(pair[1]): pair for pair in lines_pairs}
 
 
 def get_y_separation_line(median_bisector, y_med):
@@ -237,74 +241,83 @@ def define_cardinal_direction(y_separation_line, side, step_direction):
     assert False
 
 
+def define_side_direction_vector(separation_line, init_vector):
+    orth_vector_1 = separation_line.orthogonal_vector()
+    orth_vector_2 = orth_vector_1.inverted()
+    scal_prod_1 = orth_vector_1.scal(init_vector)
+    scal_prod_2 = orth_vector_2.scal(init_vector)
+    assert abs(scal_prod_1) > SimpleMath.SM_ZERO and abs(scal_prod_2) > SimpleMath.SM_ZERO
+    if scal_prod_1 > scal_prod_2:
+        result_vector = orth_vector_1
+    else:
+        result_vector = orth_vector_2
+    return result_vector
+
+
+def find_crucial_points(points, line, side):
+    return [p for p in points if side * line.define_point_side(p) <= 0]
+
+
 def find_redundant_points(points):
     bisector_to_pair = make_bisector_to_pair_map(points)
     angle_to_bisector = make_angle_to_bisector_map(bisector_to_pair)
     median_bisector = get_median_bisector(angle_to_bisector)
     lines_pairs = form_lines_pairs(angle_to_bisector, median_bisector)
-    ys_critical = form_pairs_intersections_values(lines_pairs)
+    intersection_to_lines_pair = make_intersection_to_pair_map(lines_pairs)
+
+    ys_critical = [p.get_both()['y'] for p in intersection_to_lines_pair.keys()] # form_pairs_intersections_values(lines_pairs)
     y_med = npmedian(array(ys_critical))
     y_separation_line = get_y_separation_line(median_bisector, y_med)
     aim_centre_y_side = determine_enclosure_centre_side(points, y_separation_line)
-    critical_points = dict()
-    for lines_pair in lines_pairs:
-        intersection = lines_pair[0].intersection(lines_pair[1])
-        if intersection is None:
-            continue #intersection = 0.5 * (lines_pair[0] + lines_pair[1])
-        side = y_separation_line.define_point_side(intersection)
-        if side * aim_centre_y_side <= 0:
-            critical_points[intersection] = lines_pair
-    if not critical_points:
-        return []
-    xs_critical = [p.get_x() for p in critical_points]
-    x_med = npmedian(array(xs_critical))
+    crucial_points = find_crucial_points(intersection_to_lines_pair.keys(), y_separation_line, aim_centre_y_side)
+
+    xs_critucal = [p.get_both()['x'] for p in crucial_points]
+    x_med = npmedian(array(xs_critucal))
     x_separation_line = Line2D(point1=Vector2D(x_med, 0.0), point2=Vector2D(x_med, 1.0))
     aim_centre_x_side = determine_enclosure_centre_side(points, x_separation_line)
-    crucial_lines_pairs = list()
-    for p in critical_points.keys():
-        side = x_separation_line.define_point_side(p)
-        if side * aim_centre_x_side <= 0:
-            crucial_lines_pairs.append(critical_points[p])
-    if not crucial_lines_pairs:
-        return []
-    south_north = define_cardinal_direction(y_separation_line, aim_centre_y_side, Vector2D(0.0, -1.0))
-    east_west = define_cardinal_direction(x_separation_line, aim_centre_x_side, Vector2D(-1.0, 0.0))
-    critical_lines = list()
-    for lines_pair in crucial_lines_pairs:
-        line0 = lines_pair[0]
-        line1 = lines_pair[1]
-        north = south_north == "NORTH"
-        west = east_west == "WEST"
-        if (north and west) or (not north and not west):
-            angle0 = median_bisector.angle(line0)
-            angle1 = median_bisector.angle(line1)
-            if angle0 > 0:
-                critical_lines.append(line0)
-            elif angle1 > 0:
-                critical_lines.append(line1)
+    final_points = find_crucial_points(crucial_points, x_separation_line, aim_centre_x_side)
+
+    south_vector, west_vector = Vector2D(0.0, -1.0), Vector2D(-1.0, 0.0)
+    south_vector = define_side_direction_vector(y_separation_line, south_vector)
+    south_point = y_separation_line.first.sum(south_vector)
+    south = y_separation_line.define_point_side(south_point) * aim_centre_y_side > 0
+
+    west_vector = define_side_direction_vector(x_separation_line, west_vector)
+    west_point = x_separation_line.first.sum(west_vector)
+    west = x_separation_line.define_point_side(west_point) * aim_centre_x_side > 0
+
+    final_lines = list()
+    for intersection in final_points:
+        line_pair = intersection_to_lines_pair[intersection]
+        angle0 = abs(y_axis.angle(line_pair[0]))
+        angle1 = abs(y_axis.angle(line_pair[1]))
+        print angle0, angle1
+        if (south and west) or (not south and not west):
+            if angle0 > angle1:
+                final_lines.append(line_pair[0])
             else:
-                print angle0, angle1
-                assert False
+                final_lines.append(line_pair[1])
         else:
-            angle0 = median_bisector.angle(line0)
-            angle1 = median_bisector.angle(line1)
-            if angle0 < 0:
-                critical_lines.append(line0)
-            elif angle1 < 0:
-                critical_lines.append(line1)
+            # south-east or north-west
+            if angle0 < angle1:
+                final_lines.append(line_pair[0])
             else:
-                print angle0, angle1
-                assert False
+                final_lines.append(line_pair[1])
+
+    assert final_lines
 
     rejected_points = list()
-    for line in critical_lines:
-        point1, point2 = bisector_to_pair[line]
-        med_point = Vector2D(x_med, y_med)
-        if line.are_points_on_same_side(point1, med_point):
-            rejected_points.append(point1)
-        elif line.are_points_on_same_side(point2, med_point):
-            rejected_points.append(point2)
+    for line in final_lines:
+        comparison_point = Vector2D(x_med, y_med)
+        comparison_side = line.define_point_side(comparison_point)
+        points = bisector_to_pair[line]
+        side0 = line.define_point_side(points[0])
+        side1 = line.define_point_side(points[1])
+        if side0 * comparison_side > 0:
+            rejected_points.append(points[0])
+        elif side1 * comparison_side > 0:
+            rejected_points.append(points[1])
         else:
-            assert True
+            assert False
 
     return rejected_points

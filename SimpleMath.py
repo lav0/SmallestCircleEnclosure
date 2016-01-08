@@ -59,6 +59,9 @@ class Vector2D:
     def get_both(self):
         return {'x': self.m_x, 'y': self.m_y}
 
+    def get_tuple(self):
+        return tuple(self.m_x, self.m_y)
+
     def __eq__(self, other):
         return self.sub(other).norm() < epsilon
 
@@ -190,6 +193,18 @@ class Line2D:
             scal = v1.scal(v2)
         result = atan2(v1.vect_norm(v2), scal)
         return result
+
+    def __eq__(self, other):
+        parallel = self.is_parallel(other)
+        if not parallel:
+            return False
+        return self.is_point_on_line(other.first)
+
+    def __hash__(self):
+        basic_distance1 = self.distance_to_point(Vector2D(0.0, 0.0))
+        basic_distance2 = self.distance_to_point(Vector2D(1.0, 0.0))
+        basic_distance3 = self.distance_to_point(Vector2D(0.0, 1.0))
+        return hash(basic_distance1) ^ hash(basic_distance2) ^ hash(basic_distance3)
 
 
 def point_to_line_projection(point, line):
