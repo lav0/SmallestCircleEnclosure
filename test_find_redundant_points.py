@@ -90,8 +90,9 @@ class MyTestCase(unittest.TestCase):
 
     @function_call_log_decorator
     def test_random(self):
-        for i in range(10):
-            points = generate_random_points_list(100, 40.0)
+        for i in range(1):
+            points = generate_random_points_list(16, 20.0)
+            readwrite_list.write_list_of_points(points, "Test1.txt")
             result_num = self.internal_test_loop(points)
             self.assertTrue(result_num <= 16)
 
@@ -100,6 +101,17 @@ class MyTestCase(unittest.TestCase):
         points = readwrite_list.read_list_of_points("Test0.txt")
         self.internal_test_loop(points)
         print [p.get_both() for p in points]
+
+    @function_call_log_decorator
+    def test_1(self):
+        points = readwrite_list.read_list_of_points("Test1.txt")
+        while len(points) > 4:
+            rejected = find_redundant_points(points)
+            if not rejected:
+                scroll_points_list(points)
+                rejected = find_redundant_points(points)
+            for r in rejected:
+                points.remove(r)
 
     # @function_call_log_decorator
     # def test_something(self):
