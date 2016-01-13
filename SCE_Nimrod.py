@@ -258,6 +258,21 @@ def define_side_direction_vector(separation_line, init_vector):
     return result_vector
 
 
+def point_in_centre_containing_area(x_line, y_line, med_point, south, west):
+    x = -1 if west else 1
+    y = -1 if south else 1
+    if x_line.direc.get_y() * y > 0:
+        x_direc = x_line.direc
+    else:
+        x_direc = x_line.direc.inverted()
+    if y_line.direc.get_x() * x > 0:
+        y_direc = y_line.direc
+    else:
+        y_direc = y_line.direc.inverted()
+
+    return med_point.sum(x_direc).sum(y_direc)
+
+
 def find_crucial_points(points, line, side):
     return [p for p in points if side * line.define_point_side(p) <= 0]
 
@@ -314,8 +329,11 @@ def find_redundant_points(points):
     assert final_lines
 
     rejected_points = list()
+    comparison_point = point_in_centre_containing_area(x_separation_line,
+                                                       y_separation_line,
+                                                       Vector2D(x_med, y_med),
+                                                       south, west)
     for line in final_lines:
-        comparison_point = Vector2D(x_med, y_med)
         comparison_side = line.define_point_side(comparison_point)
         points = bisector_to_pair[line]
         side0 = line.define_point_side(points[0])
