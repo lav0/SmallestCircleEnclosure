@@ -328,7 +328,7 @@ def find_redundant_points(points):
 
     assert final_lines
 
-    rejected_points = list()
+    rejected_points = set()
     comparison_point = point_in_centre_containing_area(x_separation_line,
                                                        y_separation_line,
                                                        Vector2D(x_med, y_med),
@@ -339,9 +339,9 @@ def find_redundant_points(points):
         side0 = line.define_point_side(points[0])
         side1 = line.define_point_side(points[1])
         if side0 * comparison_side > 0:
-            rejected_points.append(points[0])
+            rejected_points.add(points[0])
         elif side1 * comparison_side > 0:
-            rejected_points.append(points[1])
+            rejected_points.add(points[1])
         else:
             print "x-med, y-med point side: ", comparison_side
             assert False

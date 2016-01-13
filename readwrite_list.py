@@ -28,5 +28,3 @@ def round_points_in_file(filename, precision):
     write_list_of_points(points, filename)
 
 
-round_points_in_file("Test0.txt", 1)
-
