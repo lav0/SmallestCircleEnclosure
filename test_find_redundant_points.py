@@ -1,6 +1,7 @@
 import unittest
 import readwrite_list
 import SimpleMath
+from random import uniform
 from SCE_Nimrod import find_redundant_points
 from SCE_Nimrod import make_bisector_to_pair_map
 from SCE_Nimrod import make_angle_to_bisector_map
@@ -118,6 +119,15 @@ class MyTestCase(unittest.TestCase):
             self.assertTrue(result_num < 16)
 
     @function_call_log_decorator
+    def test_random_intensive_cmp(self):
+        for i in range(100):
+            number_of_points = int(uniform(20, 50))
+            range_of_points = uniform(30.0, 50.0)
+            points = generate_random_points_list(number_of_points, range_of_points)
+            readwrite_list.write_list_of_points(points, "TestRecentRandomIntensive.txt")
+            self.internal_test_cmp_with_direct(points)
+
+    @function_call_log_decorator
     def test_0(self):
         points = readwrite_list.read_list_of_points("Test0.txt")
         self.internal_test_loop(points)
@@ -137,7 +147,7 @@ class MyTestCase(unittest.TestCase):
     @function_call_log_decorator
     def test_2(self):
         points = readwrite_list.read_list_of_points("Test2.txt")
-        self.internal_reject_while_possible(points)
+        self.internal_test_cmp_with_direct(points)
         print len(points)
 
     @function_call_log_decorator
