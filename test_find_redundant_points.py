@@ -112,7 +112,7 @@ class MyTestCase(unittest.TestCase):
     @function_call_log_decorator
     def test_random(self):
         for i in range(10):
-            points = generate_random_points_list(16, 20.0)
+            points = generate_random_points_list(30, 30.0)
             readwrite_list.write_list_of_points(points, "TestRecentRandom.txt")
             result_num = self.internal_test_loop(points)
             self.assertTrue(result_num < 16)
@@ -126,21 +126,6 @@ class MyTestCase(unittest.TestCase):
     @function_call_log_decorator
     def test_0_cmp(self):
         points = readwrite_list.read_list_of_points("Test0.txt")
-        # while len(points) > 4:
-        #     copies = list(points)
-        #     expected_circle, dumb = find_smallest_circle_directly(copies)
-        #     rejected = find_redundant_points(points)
-        #     if not rejected:
-        #         scroll_points_list(points)
-        #         rejected = find_redundant_points(points)
-        #         if not rejected:
-        #             break
-        #     for r in rejected:
-        #         points.remove(r)
-        #     circle, dumb = find_smallest_circle_directly(points)
-        #     if expected_circle.radius > circle.radius:
-        #         readwrite_list.write_list_of_points(copies, "TestFalseRejecting.txt")
-
         self.internal_test_cmp_with_direct(points)
 
     @function_call_log_decorator
@@ -150,9 +135,15 @@ class MyTestCase(unittest.TestCase):
         print len(points)
 
     @function_call_log_decorator
+    def test_2(self):
+        points = readwrite_list.read_list_of_points("Test2.txt")
+        self.internal_reject_while_possible(points)
+        print len(points)
+
+    @function_call_log_decorator
     def test_remove_not_in_list(self):
         points = readwrite_list.read_list_of_points("Test1_removeNotInTheList.txt")
-        self.internal_reject_while_possible(points)
+        self.internal_reject_while_possible(points, until=15)
         print len(points)
 
     # @function_call_log_decorator
